@@ -31,6 +31,10 @@ public class CreatorBehaviour : MonoBehaviour
 
     public CustomTileType[,] tiles = null;
 
+    public int levelIndex = 0;
+    private int levelXSeed = 0;
+    public List<CustomTileType[,]> levels = new List<CustomTileType[,]>();
+
     private bool isValidIndices(int x, int y)
     {
         return (x >= 0 && x < width && y >= 0 && y < height);
@@ -79,7 +83,7 @@ public class CreatorBehaviour : MonoBehaviour
         return curType;
     }
 
-    private void fillLevelByNoise(CustomTileType[] materials, float[] materialsWeights, float perlinCoef, float xorg, float yorg)
+    private void fillLevelByNoise(ref CustomTileType [,] levelTiles, CustomTileType[] materials, float[] materialsWeights, float perlinCoef, float xorg, float yorg)
     {
         // use xorg and yorg for shifting perlin surface
         // materialsWeights - sum should be equal to 1.0
@@ -104,12 +108,12 @@ public class CreatorBehaviour : MonoBehaviour
                 float fx = ((float)x) / width * perlinCoef;
                 float fy = ((float)y) / height * perlinCoef;
                 float noiseValue = Mathf.PerlinNoise(xorg + fx, yorg + fy);
-                tiles[x, y] = getMaterialFromNoise(ref materials, ref materialsThresholds, noiseValue);
+                levelTiles[x, y] = getMaterialFromNoise(ref materials, ref materialsThresholds, noiseValue);
             }
         }
     }
 
-    private void makeRust(int x, int y, int threshold)
+    private void makeRust(ref CustomTileType[,] levelTiles, int x, int y, int threshold)
     {
         List<int> neighs = GetNeighbours(x, y);
         int metallCells = 0;
@@ -117,19 +121,19 @@ public class CreatorBehaviour : MonoBehaviour
         {
             int nx = neighs[i];
             int ny = neighs[i + 1];
-            if (tiles[nx, ny] == CustomTileType.metall)
+            if (levelTiles[nx, ny] == CustomTileType.metall)
             {
                 metallCells++;
                 if (metallCells > threshold)
                 {
-                    tiles[x, y] = CustomTileType.rust;
+                    levelTiles[x, y] = CustomTileType.rust;
                     break;
                 }
             }
         }
     }
 
-    private void fillBoundaries()
+    private void fillBoundaries(ref CustomTileType[,] levelTiles)
     {
         Random.InitState((int)System.DateTime.Now.Ticks);
 
@@ -137,8 +141,8 @@ public class CreatorBehaviour : MonoBehaviour
 
         for (int x = 0; x < width; x++)
         {
-            if (tiles[x, 0] == CustomTileType.empty) tiles[x, 0] = CustomTileType.ground;
-            if (tiles[x, height - 1] == CustomTileType.empty) tiles[x, height - 1] = CustomTileType.ground;
+            if (levelTiles[x, 0] == CustomTileType.empty) levelTiles[x, 0] = CustomTileType.ground;
+            if (levelTiles[x, height - 1] == CustomTileType.empty) levelTiles[x, height - 1] = CustomTileType.ground;
         }
 
         for (int y = 0; y < height; y++)
@@ -148,11 +152,11 @@ public class CreatorBehaviour : MonoBehaviour
             float rightLedge = Random.Range(-1.0f, 0.0f);
             int iRightLedge = rightLedge > -0.5f ? 0 : -1;
 
-            tiles[0, y] = CustomTileType.metall;
-            tiles[iLeftLedge, y] = CustomTileType.metall;
+            levelTiles[0, y] = CustomTileType.metall;
+            levelTiles[iLeftLedge, y] = CustomTileType.metall;
 
-            tiles[width - 1, y] = CustomTileType.metall;
-            tiles[width - 1 + iRightLedge, y] = CustomTileType.metall;
+            levelTiles[width - 1, y] = CustomTileType.metall;
+            levelTiles[width - 1 + iRightLedge, y] = CustomTileType.metall;
         }
 
         // add rust, if there are more than 3 neighbouring metall cells
@@ -160,35 +164,49 @@ public class CreatorBehaviour : MonoBehaviour
         for (int y = 0; y < height; y++)
         {
             int x = 0;
-            while (tiles[x, y] == CustomTileType.metall)
+            while (levelTiles[x, y] == CustomTileType.metall)
             {
                 x++;
             }
             int metallCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
-            makeRust(x, y, metallCellsThreshold);
+            makeRust(ref levelTiles, x, y, metallCellsThreshold);
 
             x = width - 1;
-            while (tiles[x, y] == CustomTileType.metall)
+            while (levelTiles[x, y] == CustomTileType.metall)
             {
                 x--;
             }
             metallCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
-            makeRust(x, y, metallCellsThreshold);
+            makeRust(ref levelTiles, x, y, metallCellsThreshold);
         }
     }
 
-    private void makeLevelPerlin()
+    private void makeLevelPerlin(ref CustomTileType[,] levelTiles)
     {
         CustomTileType[] materials = new CustomTileType[] { CustomTileType.empty, CustomTileType.ground, CustomTileType.rock, CustomTileType.rust, CustomTileType.metall };
         float[] weights = new float[] { 0.45f, 0.20f, 0.15f, 0.10f, 0.15f };
 
         // fill main area
 
-        fillLevelByNoise(materials, weights, 12.0f, 12.0f, 0.0f);
+        fillLevelByNoise(ref levelTiles, materials, weights, 12.0f, 12.0f * levelXSeed, 12.0f * levels.Count);
 
         // fill left and right boundaries
 
-        fillBoundaries();
+        fillBoundaries(ref levelTiles);
+    }
+
+    private void addNewLevel()
+    {
+        CustomTileType[,] levelTiles = new CustomTileType[width, height];
+        makeLevelPerlin(ref levelTiles);
+        levels.Add(levelTiles);
+    }
+
+    private void setCurrentLevel(int index)
+    {
+        levelIndex = index;
+        tiles = levels[index];
+        showLevel();
     }
 
     // do late so that the player has a chance to move in update if necessary
@@ -239,10 +257,14 @@ public class CreatorBehaviour : MonoBehaviour
     {
         if (tiles == null)
         {
+            Random.InitState((int)System.DateTime.Now.Ticks);
+
+            levelXSeed = Random.Range(0, 10000);
+
             tiles = new CustomTileType[width, height];
-            //makeLevel();
-            //makeLevelDim();
-            makeLevelPerlin();
+
+            addNewLevel();
+            setCurrentLevel(0);
         }
         showLevel();
     }

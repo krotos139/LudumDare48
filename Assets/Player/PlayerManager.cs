@@ -49,11 +49,6 @@ public class PlayerManager : MonoBehaviour
         movementBlockPointShift.Add(MovementDirection.Bottom, new List<float>() {  0.33f, 0.5f,  -0.33f,  0.5f  });
     }
 
-    private bool isValidTileIndices(int tileX, int tileY)
-    {
-        return (tileX >= 0 && tileY >= 0 && tileX < map.width && tileY < map.height);
-    }
-
     private void movementBlock(Vector2 curPos, MovementDirection dir)
     {
         // curPos is player center
@@ -66,9 +61,9 @@ public class PlayerManager : MonoBehaviour
         Vector2Int iFirstPoint = new Vector2Int((int)firstPoint.x, (int)firstPoint.y);
         Vector2Int iSecondPoint = new Vector2Int((int)secondPoint.x, (int)secondPoint.y);
 
-        if (isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
+        if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
         {
-            if (map.tiles[iFirstPoint.x, iFirstPoint.y] != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != CreatorBehaviour.CustomTileType.empty)
             {
                 if (dir == MovementDirection.Left || dir == MovementDirection.Right)
                 {
@@ -81,9 +76,9 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        if (isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
+        if (map.isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
         {
-            if (map.tiles[iSecondPoint.x, iSecondPoint.y] != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != CreatorBehaviour.CustomTileType.empty)
             {
                 if (dir == MovementDirection.Left || dir == MovementDirection.Right)
                 {
@@ -107,17 +102,17 @@ public class PlayerManager : MonoBehaviour
         Vector2Int iFirstPoint = new Vector2Int((int)firstPoint.x, (int)firstPoint.y);
         Vector2Int iSecondPoint = new Vector2Int((int)secondPoint.x, (int)secondPoint.y);
 
-        if (isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
+        if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
         {
-            if (map.tiles[iFirstPoint.x, iFirstPoint.y] != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != CreatorBehaviour.CustomTileType.empty)
             {
                 return true;
             }
         }
 
-        if (isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
+        if (map.isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
         {
-            if (map.tiles[iSecondPoint.x, iSecondPoint.y] != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != CreatorBehaviour.CustomTileType.empty)
             {
                 return true;
             }
@@ -130,7 +125,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
+            Vector2 relPosition = new Vector2(x, y) - map.getZoneBottomLeft();
 
             relPosition.y = map.height - relPosition.y;
 
@@ -164,7 +159,7 @@ public class PlayerManager : MonoBehaviour
 
     void CheckTiles()
     {
-        Vector2 relPosition = new Vector2(x, y + accelY) - map.getBottomLeft();
+        Vector2 relPosition = new Vector2(x, y + accelY) - map.getZoneBottomLeft();
         relPosition.y = map.height - relPosition.y;
 
         if (accelY < 0.0f)
@@ -176,7 +171,7 @@ public class PlayerManager : MonoBehaviour
             movementBlock(relPosition, MovementDirection.Top);
         }
         
-        relPosition = new Vector2(x + accelX, y) - map.getBottomLeft();
+        relPosition = new Vector2(x + accelX, y) - map.getZoneBottomLeft();
         relPosition.y = map.height - relPosition.y;
 
         if (accelX > 0.0f)
@@ -187,11 +182,26 @@ public class PlayerManager : MonoBehaviour
         {
             movementBlock(relPosition, MovementDirection.Left);
         }
+
+        if (map.needLevelAddition(relPosition.y + map.curZoneStart()))
+        {
+            map.addNewLevel();
+        }
+
+        /*
+        
+        if (relPosition.y > map.curZoneDeep() + map.height / 4)
+        {
+            map.setCurrentLevel(map.nextLevelIndex());
+        }
+
+        */
+        
     }
 
     public Vector2 getPosition()
     {
-        Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
+        Vector2 relPosition = new Vector2(x, y) - map.getZoneBottomLeft();
         relPosition.y = map.height - relPosition.y;
         return relPosition;
     }

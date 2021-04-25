@@ -11,7 +11,7 @@ public class CreatorBehaviour : MonoBehaviour
     public Tile rockTile;
     public Tile metallTile;
     public Tile rustTile;
-    public Tilemap highlightMap;
+    public Tilemap levelTilemap;
     public PlayerManager player;
 
     public Texture2D pick;
@@ -35,11 +35,6 @@ public class CreatorBehaviour : MonoBehaviour
     private int levelXSeed = 0;
     public List<CustomTileType[,]> levels = new List<CustomTileType[,]>();
 
-    private bool isValidIndices(int x, int y)
-    {
-        return (x >= 0 && x < width && y >= 0 && y < height);
-    }
-
     private List<int> GetNeighbours(int ix, int iy)
     {
         int[] neighShifts = new int[] { 1, 0, -1, 0, 0, 1, 0, -1, 1, 1, -1, -1, -1, 1, 1, -1 };
@@ -56,7 +51,7 @@ public class CreatorBehaviour : MonoBehaviour
             int curX = ix + neighShifts[curInd];
             int curY = iy + neighShifts[curInd + 1];
 
-            if (isValidIndices(curX, curY))
+            if (isValidTileIndices(curX, curY))
             {
                 neighs.Add(curX);
                 neighs.Add(curY);
@@ -68,7 +63,7 @@ public class CreatorBehaviour : MonoBehaviour
 
     private CustomTileType getMaterialFromNoise(ref CustomTileType[] materials, ref float[] materialsThresholds, float noiseValue)
     {
-
+        //return CustomTileType.ground;
         CustomTileType curType = CustomTileType.ground;
 
         for (int i = 0; i < materialsThresholds.Length; i++)
@@ -195,22 +190,55 @@ public class CreatorBehaviour : MonoBehaviour
         fillBoundaries(ref levelTiles);
     }
 
-    private void addNewLevel()
+    public void addNewLevel()
     {
         CustomTileType[,] levelTiles = new CustomTileType[width, height];
         makeLevelPerlin(ref levelTiles);
         levels.Add(levelTiles);
+        showLevel(levels.Count - 1);
     }
 
-    private void setCurrentLevel(int index)
+    public float curZoneDeep()
+    {
+        return height * levelIndex + height;
+    }
+
+    public float curZoneStart()
+    {
+        return height * levelIndex;
+    }
+
+    public float currentLevelMiddle()
+    {
+        return height * levelIndex + ((float)height) / 2;
+    }
+
+    public bool needLevelAddition(float curDeep)
+    {
+        if (curDeep > currentLevelMiddle())
+        {
+            if (levelIndex == levels.Count - 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setCurrentLevel(int index)
     {
         levelIndex = index;
         tiles = levels[index];
-        showLevel();
+        showLevel(index);
+    }
+
+    public int nextLevelIndex()
+    {
+        return levelIndex + 1;
     }
 
     // do late so that the player has a chance to move in update if necessary
-    private void showLevel()
+    private void showLevel(int currentLevelIndex)
     {
         Vector3Int currentCell = new Vector3Int(0, 0, 0);
         for (int x = 0; x < width; x++)
@@ -218,39 +246,77 @@ public class CreatorBehaviour : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 currentCell.x = x - width / 2;
-                currentCell.y = height / 2 - y;
-                switch (tiles[x, y])
+                currentCell.y = height / 2 - y - currentLevelIndex * height;
+                switch (levels[currentLevelIndex][x, y])
                 {
                     case CustomTileType.empty:
-                        highlightMap.SetTile(currentCell, emptyTile);
+                        levelTilemap.SetTile(currentCell, emptyTile);
                         break;
                     case CustomTileType.ground:
-                        highlightMap.SetTile(currentCell, groundTile);
+                        levelTilemap.SetTile(currentCell, groundTile);
                         break;
                     case CustomTileType.rock:
-                        highlightMap.SetTile(currentCell, rockTile);
+                        levelTilemap.SetTile(currentCell, rockTile);
                         break;
                     case CustomTileType.metall:
-                        highlightMap.SetTile(currentCell, metallTile);
+                        levelTilemap.SetTile(currentCell, metallTile);
                         break;
                     case CustomTileType.rust:
-                        highlightMap.SetTile(currentCell, rustTile);
+                        levelTilemap.SetTile(currentCell, rustTile);
                         break;
                 }
-
             }
         }
     }
 
     public Vector2 getBottomLeft()
     {
-        Vector3Int origin = highlightMap.origin;
+        Vector3Int origin = levelTilemap.origin;
         return new Vector2((float)origin.x, (float)origin.y);
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public Vector2 getZoneBottomLeft()
     {
+        Vector3Int origin = levelTilemap.origin;
+        origin.y += height * (levels.Count - 1);
+        return new Vector2((float)origin.x, (float)origin.y);
+    }
+
+    public bool isValidTileIndices(int tileX, int tileY)
+    {
+        if (tileX >= 0 && tileX < width && tileY >= 0)
+        {
+            if (tileY >= height)
+            {
+                if (levels.Count > levelIndex + 1)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public CustomTileType getTileType(int tileX, int tileY)
+    {
+        int curTileZone = tileY / height + levelIndex;
+        tileY %= height;
+
+        return levels[curTileZone][tileX, tileY];
+    }
+
+    public int setTileType(int tileX, int tileY, CustomTileType someType)
+    {
+        int curTileZone = tileY / height + levelIndex;
+        tileY %= height;
+
+        levels[curTileZone][tileX, tileY] = someType;
+        return curTileZone;
     }
 
     public void Init()
@@ -266,7 +332,7 @@ public class CreatorBehaviour : MonoBehaviour
             addNewLevel();
             setCurrentLevel(0);
         }
-        showLevel();
+        showLevel(0);
     }
 
     // Update is called once per frame
@@ -275,34 +341,41 @@ public class CreatorBehaviour : MonoBehaviour
         bool canInteract = false;
         Vector2 playerPosition = player.getPosition();
         Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector3 relPosition = cursorPosition - highlightMap.origin;
+        Vector2 zoneBottom = getZoneBottomLeft();
+        Vector3 relPosition = cursorPosition - new Vector3(zoneBottom.x, zoneBottom.y, 0.0f);
+        // relPosition.y += height * (levelIndex);
         relPosition.y = height - relPosition.y;
         Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x - 0.5f), (int)Mathf.Round(relPosition.y - 0.5f));
-        if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
+
+        if (isValidTileIndices(tileInds.x, tileInds.y))
         {
-            canInteract = true;
-            Cursor.SetCursor(pick, Vector2.zero, CursorMode.Auto);
-        } else
-        {
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+
+            if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
+            {
+                canInteract = true;
+                Cursor.SetCursor(pick, Vector2.zero, CursorMode.Auto);
+            }
+            else
+            {
+                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            }
+
+            if (Input.GetMouseButtonDown(0) && canInteract)
+            {
+                Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
+
+                int tileZone = setTileType(tileInds.x, tileInds.y, CustomTileType.empty);
+                showLevel(tileZone);
+            }
+
+            if (Input.GetMouseButtonDown(1) && canInteract)
+            {
+
+                Debug.LogWarning($"adding tile : ({tileInds.x}, {tileInds.y})");
+
+                int tileZone = setTileType(tileInds.x, tileInds.y, CustomTileType.ground);
+                showLevel(tileZone);
+            }
         }
-
-        if (Input.GetMouseButtonDown(0) && canInteract)
-        {
-            Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
-
-            tiles[tileInds.x, tileInds.y] = CustomTileType.empty;
-            showLevel();
-        }
-
-        if (Input.GetMouseButtonDown(1) && canInteract)
-        {
-
-            Debug.LogWarning($"adding tile : ({tileInds.x}, {tileInds.y})");
-
-            tiles[tileInds.x, tileInds.y] = CustomTileType.ground;
-            showLevel();
-        }
-
     }
 }

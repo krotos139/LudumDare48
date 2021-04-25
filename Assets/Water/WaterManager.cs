@@ -33,13 +33,13 @@ public class WaterManager : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         table = new byte[4 * width * height];
         tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Bilinear; //; FilterMode.Point;
+        tex.filterMode = FilterMode.Point;
 
         spr = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.0f, 0.0f), (float)cellsPerUnit);
         rend.sprite = spr;
 
         // position in the world
-        Vector2 tileMapBottomLeft = map.getBottomLeft();
+        Vector2 tileMapBottomLeft = map.getZoneBottomLeft();
         transform.position = new Vector3(tileMapBottomLeft.x, tileMapBottomLeft.y, -1.0f);
 
         // wg

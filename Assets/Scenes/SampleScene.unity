@@ -201,7 +201,7 @@ MonoBehaviour:
   rockTile: {fileID: 11400000, guid: 0c0d3ab9bec5cf64fb7cf5a8877528e2, type: 2}
   metallTile: {fileID: 11400000, guid: 6a7f49939d859dd46a0ca10e7f73ac2d, type: 2}
   rustTile: {fileID: 11400000, guid: c1bf3976995ff534094df1e7053b42e4, type: 2}
-  highlightMap: {fileID: 1245123923}
+  levelTilemap: {fileID: 1245123923}
   player: {fileID: 957891260}
   pick: {fileID: 2800000, guid: 9a9213d4b43877f409d46c36372595b8, type: 3}
   pick1: {fileID: 2800000, guid: 260d3b7c7a39b2941b575427fd54c591, type: 3}
@@ -211,6 +211,7 @@ MonoBehaviour:
   width: 40
   height: 40
   interactLength: 1
+  levelIndex: 0
 --- !u!4 &463557645
 Transform:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -19,6 +20,8 @@ public class PlayerManager : MonoBehaviour
     public GameObject world;
     CreatorBehaviour map;
 
+    public WaterManager water;
+
     private enum MovementDirection
     {
         Right,
@@ -36,7 +39,7 @@ public class PlayerManager : MonoBehaviour
         sr.sprite = playerSprite;
 
         x = 5;
-        y = 0;
+        y = 144;
 
         accelX = 0;
         accelY = 0;
@@ -155,6 +158,16 @@ public class PlayerManager : MonoBehaviour
         y += accelY * Time.deltaTime * 100.0f;
 
         transform.position = new Vector3(x, y, -2);
+
+        var pos = getPosition();
+
+        if (map.isValidTileIndices((int)pos.x, (int)pos.y))
+        {
+            if (water.tileHasWater((int)pos.x, (int)pos.y))
+            {
+                SceneManager.LoadScene("Death");
+            }
+        }
     }
 
     void CheckTiles()

@@ -78,7 +78,7 @@ public class CreatorBehaviour : MonoBehaviour
         return curType;
     }
 
-    private void fillLevelByNoise(ref CustomTileType [,] levelTiles, CustomTileType[] materials, float[] materialsWeights, float perlinCoef, float xorg, float yorg)
+    private void fillLevelByNoise(ref CustomTileType [,] levelTiles, CustomTileType[] materials, float[] materialsWeights, float perlinCoefX, float perlinCoefY, float xorg, float yorg)
     {
         // use xorg and yorg for shifting perlin surface
         // materialsWeights - sum should be equal to 1.0
@@ -100,8 +100,8 @@ public class CreatorBehaviour : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                float fx = ((float)x) / width * perlinCoef;
-                float fy = ((float)y) / height * perlinCoef;
+                float fx = ((float)x) / width * perlinCoefX;
+                float fy = ((float)y) / height * perlinCoefY;
                 float noiseValue = Mathf.PerlinNoise(xorg + fx, yorg + fy);
                 levelTiles[x, y] = getMaterialFromNoise(ref materials, ref materialsThresholds, noiseValue);
             }
@@ -179,11 +179,11 @@ public class CreatorBehaviour : MonoBehaviour
     private void makeLevelPerlin(ref CustomTileType[,] levelTiles)
     {
         CustomTileType[] materials = new CustomTileType[] { CustomTileType.empty, CustomTileType.ground, CustomTileType.rock, CustomTileType.rust, CustomTileType.metall };
-        float[] weights = new float[] { 0.45f, 0.20f, 0.15f, 0.10f, 0.15f };
+        float[] weights = new float[] { 0.15f, 0.40f, 0.15f, 0.15f, 0.15f };
 
         // fill main area
 
-        fillLevelByNoise(ref levelTiles, materials, weights, 12.0f, 12.0f * levelXSeed, 12.0f * levels.Count);
+        fillLevelByNoise(ref levelTiles, materials, weights, 12.0f, 12.0f * (height / width), 12.0f * levelXSeed, 12.0f * levels.Count * (height / width));
 
         // fill left and right boundaries
 
@@ -319,6 +319,26 @@ public class CreatorBehaviour : MonoBehaviour
         return curTileZone;
     }
 
+    void prepareBeginning()
+    {
+        // clear layer for beginning
+        for (int i = 3; i < width -3; ++i)
+        {
+            for (int j = 0; j < 5; ++j)
+            {
+                setTileType(i, j, CustomTileType.empty);                             
+            }
+        }
+
+        for (int i = 10; i < 20; ++i)
+        {
+            for (int j = 5; j < 10; ++j)
+            {
+                setTileType(i, j, CustomTileType.empty);
+            }
+        }
+    }
+
     public void Init()
     {
         if (tiles == null)
@@ -331,6 +351,8 @@ public class CreatorBehaviour : MonoBehaviour
 
             addNewLevel();
             setCurrentLevel(0);
+
+            prepareBeginning();
         }
         showLevel(0);
     }

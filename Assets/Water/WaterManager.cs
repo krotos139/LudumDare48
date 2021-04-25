@@ -49,6 +49,21 @@ public class WaterManager : MonoBehaviour
         time = 0.0f;
     }
 
+    public bool tileHasWater(int tileX, int tileY)
+    {
+        var wManager = GetComponent<WaterManager>();
+
+        for (int i = tileX * waterQuality; i < (tileX + 1) * waterQuality; ++i)
+        {
+            for (int j = tileY * waterQuality; j < (tileY + 1) * waterQuality; ++j)
+            {
+                if (waterGrid.cells[i, j] == WaterGrid.cellType.water) return true;
+            }
+        }
+
+        return false;
+    }
+
     private void syncLevel()
     {
         Vector3Int currentCell = new Vector3Int(0, 0, 0);
@@ -103,7 +118,7 @@ public class WaterManager : MonoBehaviour
                     green = 171;
                     blue = 34;
                     float arg = (float)(j * height + i) + time * (float)(i * j);
-                    alpha = (byte)(230 + 25 * (float)(0.5f + 0.5f * (float)Mathf.Sin(arg)));
+                    alpha = (byte)(Random.Range(240, 255));
                 }
 
                 table[j * width * 4 + i * 4 + 0] = red;
@@ -124,7 +139,7 @@ public class WaterManager : MonoBehaviour
 
             if (Random.Range(1, 6) == 4)
             {
-                waterGrid.cells[width / 4, height / 3] = WaterGrid.cellType.water;
+                waterGrid.cells[45, 5] = WaterGrid.cellType.water;
             }
 
             waterGrid.nextStep();

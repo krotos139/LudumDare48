@@ -61,7 +61,6 @@ public class WaterGrid : MonoBehaviour
                 connectivity[i, j] = -1;
     }
 
-
     public int findLakes()
     {
         resetConnectivityData();

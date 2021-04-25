@@ -388,6 +388,7 @@ public class CreatorBehaviour : MonoBehaviour
 
                 int tileZone = setTileType(tileInds.x, tileInds.y, CustomTileType.empty);
                 showLevel(tileZone);
+                player.Dig();
             }
 
             if (Input.GetMouseButtonDown(1) && canInteract)
@@ -397,6 +398,7 @@ public class CreatorBehaviour : MonoBehaviour
 
                 int tileZone = setTileType(tileInds.x, tileInds.y, CustomTileType.ground);
                 showLevel(tileZone);
+                player.Dig();
             }
         }
     }

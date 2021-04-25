@@ -135,6 +135,10 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            Dig();
+        }
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -292,8 +296,8 @@ public class PlayerManager : MonoBehaviour
         return relPosition;
     }
 
-    void Dig()
+    public void Dig()
     {
-
+        anim.SetTrigger("dig");
     }
 }

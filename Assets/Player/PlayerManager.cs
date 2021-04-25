@@ -172,7 +172,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (grounded)
             {
-                accelY += jumpForce;
+                accelY = jumpForce;
                 anim.SetInteger("accel_y", 1);
                 anim.SetBool("grounded", false);
                 anim.SetTrigger("jump");

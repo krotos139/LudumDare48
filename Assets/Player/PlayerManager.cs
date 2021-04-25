@@ -135,6 +135,10 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            Dig();
+        }
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -172,7 +176,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (grounded)
             {
-                accelY += jumpForce;
+                accelY = jumpForce;
                 anim.SetInteger("accel_y", 1);
                 anim.SetBool("grounded", false);
                 anim.SetTrigger("jump");
@@ -292,8 +296,8 @@ public class PlayerManager : MonoBehaviour
         return relPosition;
     }
 
-    void Dig()
+    public void Dig()
     {
-
+        anim.SetTrigger("dig");
     }
 }

@@ -189,6 +189,13 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public Vector2 getPosition()
+    {
+        Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
+        relPosition.y = map.height - relPosition.y;
+        return relPosition;
+    }
+
     void Dig()
     {
 

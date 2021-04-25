@@ -22,10 +22,10 @@ TextureImporter:
     second: character_a3
   - first:
       213: -6145872667730287161
-    second: ground_a
+    second: select
   - first:
       213: 3108315301061666720
-    second: image_7
+    second: ground_a
   - first:
       213: 5670843616968309514
     second: rust_a
@@ -244,7 +244,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_a
+      name: select
       rect:
         serializedVersion: 2
         x: 0
@@ -265,7 +265,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: image_7
+      name: ground_a
       rect:
         serializedVersion: 2
         x: 48

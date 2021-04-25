@@ -12,9 +12,17 @@ public class CreatorBehaviour : MonoBehaviour
     public Tile metallTile;
     public Tile rustTile;
     public Tilemap highlightMap;
+    public PlayerManager player;
 
-    public int width;
-    public int height;
+    public Texture2D pick;
+    public Texture2D pick1;
+    public Texture2D pick2;
+    public Texture2D pick3;
+    public Texture2D pick4;
+
+    public int width = 50;
+    public int height = 50;
+    public float interactLength = 1.8f;
 
     public enum CustomTileType
     {
@@ -242,25 +250,31 @@ public class CreatorBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        bool canInteract = false;
+        Vector2 playerPosition = player.getPosition();
+        Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 relPosition = cursorPosition - highlightMap.origin;
+        relPosition.y = height - relPosition.y;
+        Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x - 0.5f), (int)Mathf.Round(relPosition.y - 0.5f));
+        if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
         {
-            Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 relPosition = cursorPosition - highlightMap.origin;
-            relPosition.y = height - relPosition.y;
-            Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x), (int)Mathf.Round(relPosition.y));
+            canInteract = true;
+            Cursor.SetCursor(pick, Vector2.zero, CursorMode.Auto);
+        } else
+        {
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        }
 
+        if (Input.GetMouseButtonDown(0) && canInteract)
+        {
             Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
 
             tiles[tileInds.x, tileInds.y] = CustomTileType.empty;
             showLevel();
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && canInteract)
         {
-            Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 relPosition = cursorPosition - highlightMap.origin;
-            relPosition.y = height - relPosition.y;
-            Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x), (int)Mathf.Round(relPosition.y));
 
             Debug.LogWarning($"adding tile : ({tileInds.x}, {tileInds.y})");
 

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,6 +15,7 @@ public class WaterManager : MonoBehaviour
     public GameObject world;
     CreatorBehaviour map;
     public int waterQuality;
+    float time;
 
     void Start()
     {
@@ -32,9 +33,9 @@ public class WaterManager : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         table = new byte[4 * width * height];
         tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Point;
+        tex.filterMode = FilterMode.Bilinear; //; FilterMode.Point;
 
-        spr = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.0f, 0.0f), (float) cellsPerUnit);
+        spr = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.0f, 0.0f), (float)cellsPerUnit);
         rend.sprite = spr;
 
         // position in the world
@@ -45,6 +46,7 @@ public class WaterManager : MonoBehaviour
         waterGrid = new WaterGrid((uint)width, (uint)height);
 
         syncLevel();
+        time = 0.0f;
     }
 
     private void syncLevel()
@@ -67,7 +69,7 @@ public class WaterManager : MonoBehaviour
                                 }
                                 break;
                             case CreatorBehaviour.CustomTileType.ground:
-                                 waterGrid.cells[i, j] = WaterGrid.cellType.ground;
+                                waterGrid.cells[i, j] = WaterGrid.cellType.ground;
                                 break;
                             case CreatorBehaviour.CustomTileType.rock:
                                 waterGrid.cells[i, j] = WaterGrid.cellType.ground;
@@ -97,8 +99,11 @@ public class WaterManager : MonoBehaviour
                 byte alpha = 0;
                 if (waterGrid.cells[i, height - j - 1] == WaterGrid.cellType.water)
                 {
-                    green = 255;
-                    alpha = (byte)Random.Range(40, 120);
+                    red = 117;
+                    green = 171;
+                    blue = 34;
+                    float arg = (float)(j * height + i) + time * (float)(i * j);
+                    alpha = (byte)(230 + 25 * (float)(0.5f + 0.5f * (float)Mathf.Sin(arg)));
                 }
 
                 table[j * width * 4 + i * 4 + 0] = red;
@@ -117,13 +122,14 @@ public class WaterManager : MonoBehaviour
         {
             syncLevel();
 
-            if (Random.Range(1, 11) == 4)
+            if (Random.Range(1, 6) == 4)
             {
-                waterGrid.cells[width /4, height / 3] = WaterGrid.cellType.water;
+                waterGrid.cells[width / 4, height / 3] = WaterGrid.cellType.water;
             }
-            
+
             waterGrid.nextStep();
             rendedTexture();
         }
+        time += 0.001f;
     }
 }

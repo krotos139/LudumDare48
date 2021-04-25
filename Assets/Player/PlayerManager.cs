@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
-    private float accelForce = 0.001f;
+    private float accelForce = 0.002f;
     private float accelDecay = 0.02f;
     private float jumpForce = 0.2f;
     private float gravity = 0.15f;
@@ -151,13 +151,13 @@ public class PlayerManager : MonoBehaviour
         {
             accelX -= accelForce;
         }
-        accelX = Mathf.Lerp(accelX, 0, accelDecay);
-        accelY = Mathf.Lerp(accelY, -gravity, accelDecay);
+        accelX = Mathf.Lerp(accelX, 0, accelDecay * Time.deltaTime * 100.0f);
+        accelY = Mathf.Lerp(accelY, -gravity, accelDecay * Time.deltaTime * 100.0f);
 
         CheckTiles();
 
-        x += accelX;
-        y += accelY;
+        x += accelX * Time.deltaTime * 100.0f;
+        y += accelY * Time.deltaTime * 100.0f;
 
         transform.position = new Vector3(x, y, -2);
     }

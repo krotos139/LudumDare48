@@ -17,6 +17,8 @@ public class WaterManager : MonoBehaviour
     public int waterQuality;
     float time;
 
+    public float waterVolume;
+
     void Start()
     {
         map = world.GetComponent<CreatorBehaviour>();
@@ -131,6 +133,7 @@ public class WaterManager : MonoBehaviour
         tex.Apply();
     }
     // Update is called once per frame
+
     void Update()
     {
         if (map != null)
@@ -140,6 +143,7 @@ public class WaterManager : MonoBehaviour
             if (Random.Range(1, 6) == 4)
             {
                 waterGrid.cells[45, 5] = WaterGrid.cellType.water;
+                waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
             }
 
             waterGrid.nextStep();

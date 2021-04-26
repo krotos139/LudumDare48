@@ -15,6 +15,8 @@ public class WaterManager : MonoBehaviour
     public GameObject world;
     CreatorBehaviour map;
     public int waterQuality;
+    public int waterDelay = 0;
+    private int waterCurDelay = 0;
     float time;
 
     public float waterVolume;
@@ -79,22 +81,22 @@ public class WaterManager : MonoBehaviour
                     {
                         switch (map.tiles[x, y])
                         {
-                            case CreatorBehaviour.CustomTileType.empty:
+                            case EnvCellType.empty:
                                 if (waterGrid.cells[i, j] != WaterGrid.cellType.water)
                                 {
                                     waterGrid.cells[i, j] = WaterGrid.cellType.empty;
                                 }
                                 break;
-                            case CreatorBehaviour.CustomTileType.ground:
+                            case EnvCellType.ground:
                                 waterGrid.cells[i, j] = WaterGrid.cellType.ground;
                                 break;
-                            case CreatorBehaviour.CustomTileType.rock:
+                            case EnvCellType.rock:
                                 waterGrid.cells[i, j] = WaterGrid.cellType.ground;
                                 break;
-                            case CreatorBehaviour.CustomTileType.metall:
+                            case EnvCellType.metal:
                                 waterGrid.cells[i, j] = WaterGrid.cellType.ground;
                                 break;
-                            case CreatorBehaviour.CustomTileType.rust:
+                            case EnvCellType.rust:
                                 waterGrid.cells[i, j] = WaterGrid.cellType.ground;
                                 break;
                         }
@@ -140,13 +142,20 @@ public class WaterManager : MonoBehaviour
         {
             syncLevel();
 
-            if (Random.Range(1, 6) == 4)
+            if (waterCurDelay == waterDelay)
             {
-                waterGrid.cells[45, 5] = WaterGrid.cellType.water;
-                waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
+                if (Random.Range(1, 6) == 4)
+                {
+                    waterGrid.cells[45, 5] = WaterGrid.cellType.water;
+                    waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
+                }
+                waterGrid.nextStep();
+                waterCurDelay = 0;
             }
-
-            waterGrid.nextStep();
+            else
+            {
+                waterCurDelay++;
+            }
             rendedTexture();
         }
         time += 0.001f;

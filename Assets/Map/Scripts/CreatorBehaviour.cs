@@ -3,13 +3,57 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+public enum EnvCellType
+{
+    ground, empty, rock, metal, rust
+}
+
+public class InteractiveCell
+{
+    static Dictionary<EnvCellType, int> typeDurability = new Dictionary<EnvCellType, int>() { { EnvCellType.empty, 0 }, { EnvCellType.ground, 2 }, { EnvCellType.rock, 4 }, { EnvCellType.rust, 2 }, { EnvCellType.metal, 999 } };
+    int durability = 0;
+    int zone = 0;
+    EnvCellType cellType = EnvCellType.empty;
+
+    public InteractiveCell(EnvCellType _cellType, int curZone)
+    {
+        cellType = _cellType;
+        durability = typeDurability[cellType];
+        zone = curZone;
+    }
+
+    public bool Hit()
+    {
+        durability--;
+        if (durability < 1)
+        {
+            cellType = EnvCellType.empty;
+            // broken
+            return false;
+        }
+        return true;
+    }
+    public int getDurability()
+    {
+        return durability;
+    }
+    public EnvCellType getType()
+    {
+        return cellType;
+    }
+    public int getZone()
+    {
+        return zone;
+    }
+}
+
 public class CreatorBehaviour : MonoBehaviour
 {
 
     public Tile emptyTile;
     public Tile groundTile;
     public Tile rockTile;
-    public Tile metallTile;
+    public Tile metalTile;
     public Tile rustTile;
     public Tilemap levelTilemap;
     public PlayerManager player;
@@ -20,20 +64,25 @@ public class CreatorBehaviour : MonoBehaviour
     public Texture2D pick3;
     public Texture2D pick4;
 
+    public Texture2D shovel;
+    public Texture2D shovel1;
+    public Texture2D shovel2;
+    public Texture2D shovel3;
+    public Texture2D shovel4;
+
     public int width = 50;
     public int height = 50;
     public float interactLength = 1.8f;
 
-    public enum CustomTileType
-    {
-        ground, empty, rock, metall, rust
-    }
-
-    public CustomTileType[,] tiles = null;
+    public EnvCellType[,] tiles = null;
 
     public int levelIndex = 0;
     private int levelXSeed = 0;
-    public List<CustomTileType[,]> levels = new List<CustomTileType[,]>();
+
+    // need to merge it into one thing
+
+    public List<EnvCellType[,]> levels = new List<EnvCellType[,]>();
+    public List<InteractiveCell[,]> cells = new List<InteractiveCell[,]>();
 
     private List<int> GetNeighbours(int ix, int iy)
     {
@@ -61,10 +110,10 @@ public class CreatorBehaviour : MonoBehaviour
         return neighs;
     }
 
-    private CustomTileType getMaterialFromNoise(ref CustomTileType[] materials, ref float[] materialsThresholds, float noiseValue)
+    private EnvCellType getMaterialFromNoise(ref EnvCellType[] materials, ref float[] materialsThresholds, float noiseValue)
     {
-        //return CustomTileType.ground;
-        CustomTileType curType = CustomTileType.ground;
+        //return EnvCellType.ground;
+        EnvCellType curType = EnvCellType.ground;
 
         for (int i = 0; i < materialsThresholds.Length; i++)
         {
@@ -78,7 +127,7 @@ public class CreatorBehaviour : MonoBehaviour
         return curType;
     }
 
-    private void fillLevelByNoise(ref CustomTileType [,] levelTiles, CustomTileType[] materials, float[] materialsWeights, float perlinCoefX, float perlinCoefY, float xorg, float yorg)
+    private void fillLevelByNoise(ref EnvCellType [,] levelTiles, EnvCellType[] materials, float[] materialsWeights, float perlinCoefX, float perlinCoefY, float xorg, float yorg)
     {
         // use xorg and yorg for shifting perlin surface
         // materialsWeights - sum should be equal to 1.0
@@ -108,36 +157,36 @@ public class CreatorBehaviour : MonoBehaviour
         }
     }
 
-    private void makeRust(ref CustomTileType[,] levelTiles, int x, int y, int threshold)
+    private void makeRust(ref EnvCellType[,] levelTiles, int x, int y, int threshold)
     {
         List<int> neighs = GetNeighbours(x, y);
-        int metallCells = 0;
+        int metalCells = 0;
         for (int i = 0; i < neighs.Count; i += 2)
         {
             int nx = neighs[i];
             int ny = neighs[i + 1];
-            if (levelTiles[nx, ny] == CustomTileType.metall)
+            if (levelTiles[nx, ny] == EnvCellType.metal)
             {
-                metallCells++;
-                if (metallCells > threshold)
+                metalCells++;
+                if (metalCells > threshold)
                 {
-                    levelTiles[x, y] = CustomTileType.rust;
+                    levelTiles[x, y] = EnvCellType.rust;
                     break;
                 }
             }
         }
     }
 
-    private void fillBoundaries(ref CustomTileType[,] levelTiles)
+    private void fillBoundaries(ref EnvCellType[,] levelTiles)
     {
         Random.InitState((int)System.DateTime.Now.Ticks);
 
-        // add metall
+        // add metal
 
         for (int x = 0; x < width; x++)
         {
-            if (levelTiles[x, 0] == CustomTileType.empty) levelTiles[x, 0] = CustomTileType.ground;
-            if (levelTiles[x, height - 1] == CustomTileType.empty) levelTiles[x, height - 1] = CustomTileType.ground;
+            if (levelTiles[x, 0] == EnvCellType.empty) levelTiles[x, 0] = EnvCellType.ground;
+            if (levelTiles[x, height - 1] == EnvCellType.empty) levelTiles[x, height - 1] = EnvCellType.ground;
         }
 
         for (int y = 0; y < height; y++)
@@ -147,38 +196,38 @@ public class CreatorBehaviour : MonoBehaviour
             float rightLedge = Random.Range(-1.0f, 0.0f);
             int iRightLedge = rightLedge > -0.5f ? 0 : -1;
 
-            levelTiles[0, y] = CustomTileType.metall;
-            levelTiles[iLeftLedge, y] = CustomTileType.metall;
+            levelTiles[0, y] = EnvCellType.metal;
+            levelTiles[iLeftLedge, y] = EnvCellType.metal;
 
-            levelTiles[width - 1, y] = CustomTileType.metall;
-            levelTiles[width - 1 + iRightLedge, y] = CustomTileType.metall;
+            levelTiles[width - 1, y] = EnvCellType.metal;
+            levelTiles[width - 1 + iRightLedge, y] = EnvCellType.metal;
         }
 
-        // add rust, if there are more than 3 neighbouring metall cells
+        // add rust, if there are more than 3 neighbouring metal cells
 
         for (int y = 0; y < height; y++)
         {
             int x = 0;
-            while (levelTiles[x, y] == CustomTileType.metall)
+            while (levelTiles[x, y] == EnvCellType.metal)
             {
                 x++;
             }
-            int metallCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
-            makeRust(ref levelTiles, x, y, metallCellsThreshold);
+            int metalCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
+            makeRust(ref levelTiles, x, y, metalCellsThreshold);
 
             x = width - 1;
-            while (levelTiles[x, y] == CustomTileType.metall)
+            while (levelTiles[x, y] == EnvCellType.metal)
             {
                 x--;
             }
-            metallCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
-            makeRust(ref levelTiles, x, y, metallCellsThreshold);
+            metalCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
+            makeRust(ref levelTiles, x, y, metalCellsThreshold);
         }
     }
 
-    private void makeLevelPerlin(ref CustomTileType[,] levelTiles)
+    private void makeLevelPerlin(ref EnvCellType[,] levelTiles)
     {
-        CustomTileType[] materials = new CustomTileType[] { CustomTileType.empty, CustomTileType.ground, CustomTileType.rock, CustomTileType.rust, CustomTileType.metall };
+        EnvCellType[] materials = new EnvCellType[] { EnvCellType.empty, EnvCellType.ground, EnvCellType.rock, EnvCellType.rust, EnvCellType.metal };
         float[] weights = new float[] { 0.15f, 0.40f, 0.15f, 0.15f, 0.15f };
 
         // fill main area
@@ -192,9 +241,14 @@ public class CreatorBehaviour : MonoBehaviour
 
     public void addNewLevel()
     {
-        CustomTileType[,] levelTiles = new CustomTileType[width, height];
+        EnvCellType[,] levelTiles = new EnvCellType[width, height];
+        InteractiveCell[,] levelCells = new InteractiveCell[width, height];
+
         makeLevelPerlin(ref levelTiles);
+        SetInteractiveCells(ref levelTiles, ref levelCells, levels.Count);
+
         levels.Add(levelTiles);
+        cells.Add(levelCells);
         showLevel(levels.Count - 1);
     }
 
@@ -249,19 +303,20 @@ public class CreatorBehaviour : MonoBehaviour
                 currentCell.y = height / 2 - y - currentLevelIndex * height;
                 switch (levels[currentLevelIndex][x, y])
                 {
-                    case CustomTileType.empty:
-                        levelTilemap.SetTile(currentCell, emptyTile);
+                    case EnvCellType.empty:
+                        //levelTilemap.SetTile(currentCell, emptyTile);
+                        levelTilemap.SetTile(currentCell, null); // just don't draw it
                         break;
-                    case CustomTileType.ground:
+                    case EnvCellType.ground:
                         levelTilemap.SetTile(currentCell, groundTile);
                         break;
-                    case CustomTileType.rock:
+                    case EnvCellType.rock:
                         levelTilemap.SetTile(currentCell, rockTile);
                         break;
-                    case CustomTileType.metall:
-                        levelTilemap.SetTile(currentCell, metallTile);
+                    case EnvCellType.metal:
+                        levelTilemap.SetTile(currentCell, metalTile);
                         break;
-                    case CustomTileType.rust:
+                    case EnvCellType.rust:
                         levelTilemap.SetTile(currentCell, rustTile);
                         break;
                 }
@@ -302,7 +357,7 @@ public class CreatorBehaviour : MonoBehaviour
         return false;
     }
 
-    public CustomTileType getTileType(int tileX, int tileY)
+    public EnvCellType getTileType(int tileX, int tileY)
     {
         int curTileZone = tileY / height + levelIndex;
         tileY %= height;
@@ -310,7 +365,7 @@ public class CreatorBehaviour : MonoBehaviour
         return levels[curTileZone][tileX, tileY];
     }
 
-    public int setTileType(int tileX, int tileY, CustomTileType someType)
+    public int setTileType(int tileX, int tileY, EnvCellType someType)
     {
         int curTileZone = tileY / height + levelIndex;
         tileY %= height;
@@ -319,22 +374,67 @@ public class CreatorBehaviour : MonoBehaviour
         return curTileZone;
     }
 
+    public ref InteractiveCell getCell(int tileX, int tileY)
+    {
+        int curTileZone = tileY / height + levelIndex;
+        tileY %= height;
+
+        return ref cells[curTileZone][tileX, tileY];
+    }
+
     void prepareBeginning()
     {
         // clear layer for beginning
-        for (int i = 3; i < width -3; ++i)
+        for (int x = 2; x < width-2; ++x)
         {
-            for (int j = 0; j < 5; ++j)
+            for (int y = 0; y < 5; ++y)
             {
-                setTileType(i, j, CustomTileType.empty);                             
+                setTileType(x, y, EnvCellType.empty);
             }
         }
-
-        for (int i = 10; i < 20; ++i)
+        
+        for (int y = 0; y < 5; y++)
         {
-            for (int j = 5; j < 10; ++j)
+            if (getTileType(0, y) != EnvCellType.metal)
             {
-                setTileType(i, j, CustomTileType.empty);
+                setTileType(0, y, EnvCellType.empty);
+            }
+            if (getTileType(1, y) != EnvCellType.metal)
+            {
+                setTileType(1, y, EnvCellType.empty);
+            }
+            if (getTileType(width-1, y) != EnvCellType.metal)
+            {
+                setTileType(width-1, y, EnvCellType.empty);
+            }
+            if (getTileType(width-2, y) != EnvCellType.metal)
+            {
+                setTileType(width-2, y, EnvCellType.empty);
+            }
+        }
+        
+        int xmid = width / 2;
+        int holeWidth = width / 4;
+
+        int holeStart = 5;
+        int holeStop = 9;
+
+        for (int x = xmid - holeWidth / 2; x < xmid + holeWidth / 2 + holeWidth % 2; x++)
+        {
+            for(int y = holeStart; y < holeStop; y++)
+            {
+                setTileType(x, y, EnvCellType.empty);
+            }
+        }
+    }
+
+    private void SetInteractiveCells(ref EnvCellType[,] levelTiles, ref InteractiveCell[,] levelCells, int zoneIndex)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                levelCells[x, y] = new InteractiveCell(levelTiles[x, y], zoneIndex);
             }
         }
     }
@@ -347,12 +447,18 @@ public class CreatorBehaviour : MonoBehaviour
 
             levelXSeed = Random.Range(0, 10000);
 
-            tiles = new CustomTileType[width, height];
+            tiles = new EnvCellType[width, height];
 
             addNewLevel();
             setCurrentLevel(0);
 
             prepareBeginning();
+
+            InteractiveCell[,] levelCells = cells[0];
+
+            SetInteractiveCells(ref tiles, ref levelCells, 0);
+
+            cells[0] = levelCells;
         }
         showLevel(0);
     }
@@ -371,11 +477,50 @@ public class CreatorBehaviour : MonoBehaviour
 
         if (isValidTileIndices(tileInds.x, tileInds.y))
         {
+            InteractiveCell curCell = getCell(tileInds.x, tileInds.y);
+            EnvCellType cellType = curCell.getType();
+            int cellDurability = curCell.getDurability();
 
-            if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
+            if (cellType != EnvCellType.metal && cellType != EnvCellType.empty)
             {
-                canInteract = true;
-                Cursor.SetCursor(pick, Vector2.zero, CursorMode.Auto);
+                if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
+                {
+                    // only detroying 
+
+                    canInteract = true;
+
+                    if (cellType == EnvCellType.ground || cellType == EnvCellType.rust)
+                    {
+                        switch(cellDurability)
+                        {
+                            case 1:
+                                Cursor.SetCursor(shovel4, Vector2.zero, CursorMode.Auto);
+                                break;
+                            case 2:
+                                Cursor.SetCursor(shovel, Vector2.zero, CursorMode.Auto);
+                                break;
+                        }
+                    }
+                    if (cellType == EnvCellType.rock)
+                    {
+                        switch (cellDurability)
+                        {
+                            case 1:
+                                Cursor.SetCursor(pick4, Vector2.zero, CursorMode.Auto);
+                                break;
+                            case 2:
+                                Cursor.SetCursor(pick3, Vector2.zero, CursorMode.Auto);
+                                break;
+                            case 3:
+                                Cursor.SetCursor(pick1, Vector2.zero, CursorMode.Auto);
+                                break;
+                            case 4:
+                                Cursor.SetCursor(pick, Vector2.zero, CursorMode.Auto);
+                                break;
+                        }
+                    }
+                    
+                }
             }
             else
             {
@@ -386,20 +531,27 @@ public class CreatorBehaviour : MonoBehaviour
             {
                 Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
 
-                int tileZone = setTileType(tileInds.x, tileInds.y, CustomTileType.empty);
-                showLevel(tileZone);
+                if (!curCell.Hit())
+                {
+                    int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);
+                    showLevel(curCell.getZone());
+                }
                 player.Dig();
             }
+
+            /*
 
             if (Input.GetMouseButtonDown(1) && canInteract)
             {
 
                 Debug.LogWarning($"adding tile : ({tileInds.x}, {tileInds.y})");
 
-                int tileZone = setTileType(tileInds.x, tileInds.y, CustomTileType.ground);
+                int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.ground);
                 showLevel(tileZone);
                 player.Dig();
             }
+
+            */
         }
     }
 }

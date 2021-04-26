@@ -12,6 +12,7 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void onStart()
     {
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         SceneManager.LoadScene("SampleScene");
     }
 

@@ -75,7 +75,7 @@ public class PlayerManager : MonoBehaviour
 
         if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
         {
-            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != EnvCellType.empty)
             {
                 if (dir == MovementDirection.Left || dir == MovementDirection.Right)
                 {
@@ -90,7 +90,7 @@ public class PlayerManager : MonoBehaviour
 
         if (map.isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
         {
-            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != EnvCellType.empty)
             {
                 if (dir == MovementDirection.Left || dir == MovementDirection.Right)
                 {
@@ -116,7 +116,7 @@ public class PlayerManager : MonoBehaviour
 
         if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
         {
-            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != EnvCellType.empty)
             {
                 return true;
             }
@@ -124,7 +124,7 @@ public class PlayerManager : MonoBehaviour
 
         if (map.isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
         {
-            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != CreatorBehaviour.CustomTileType.empty)
+            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != EnvCellType.empty)
             {
                 return true;
             }

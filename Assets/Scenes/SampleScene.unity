@@ -1101,7 +1101,6 @@ MonoBehaviour:
   startButton: {fileID: 1375070562}
   creditsButton: {fileID: 721465950}
   quitButton: {fileID: 1298451042}
-  buttonsEnabled: 0
 --- !u!4 &1019717482
 Transform:
   m_ObjectHideFlags: 0
@@ -1440,7 +1439,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 3cda223db321fb3438718eef28e8a077, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a5920a4ad5e996145afc3fa2235bc070, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

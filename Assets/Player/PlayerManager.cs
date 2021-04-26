@@ -46,6 +46,8 @@ public class PlayerManager : MonoBehaviour
     private int clipIndex = 1;
     private AudioSource[] audioSources = new AudioSource[2];
 
+    public bool mortal = true;
+
     private enum MovementDirection
     {
         Right,
@@ -172,16 +174,22 @@ public class PlayerManager : MonoBehaviour
         Vector2Int firstTileWidth = new Vector2Int(firstTile.x * map.tilePixelSize, (firstTile.x + 1) * map.tilePixelSize);
         Vector2Int firstTileHeight = new Vector2Int(firstTile.y * map.tilePixelSize, (firstTile.y + 1) * map.tilePixelSize);
 
-        Debug.Log($"movementPixelBlock: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
+        //Debug.Log($"movementPixelBlock: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
 
         if (map.isPixelValid(firstPixel))
         {
             if (map.getTileType(firstTile) != EnvCellType.empty)
             {
-                Debug.Log($"movementPixelBlock: tile ({firstTile.x}, {firstTile.y}) - blocker");
-                if (dir == MovementDirection.Left || dir == MovementDirection.Right)
+                //Debug.Log($"movementPixelBlock: tile ({firstTile.x}, {firstTile.y}) - blocker");
+                if (dir == MovementDirection.Left)
                 {
-                    accelX = 0;
+                    x += 0.001f;
+                    accelX = 0f;
+                }
+                else if (dir == MovementDirection.Right)
+                {
+                    x -= 0.001f;
+                    accelX = 0f;
                 }
                 else
                 {
@@ -194,10 +202,16 @@ public class PlayerManager : MonoBehaviour
         {
             if (map.getTileType(secondTile) != EnvCellType.empty)
             {
-                Debug.Log($"movementPixelBlock: tile ({secondTile.x}, {secondTile.y}) - blocker");
-                if (dir == MovementDirection.Left || dir == MovementDirection.Right)
+                //Debug.Log($"movementPixelBlock: tile ({secondTile.x}, {secondTile.y}) - blocker");
+                if (dir == MovementDirection.Left)
                 {
-                    accelX = 0;
+                    x += 0.001f;
+                    accelX = 0f;
+                }
+                else if (dir == MovementDirection.Right)
+                {
+                    x -= 0.001f;
+                    accelX = 0f;
                 }
                 else
                 {
@@ -233,13 +247,13 @@ public class PlayerManager : MonoBehaviour
 
         bool answer = false;
 
-        Debug.Log($"isPixelGrounded: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
+        //Debug.Log($"isPixelGrounded: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
 
         if (map.isPixelValid(firstPixel))
         {
             if (map.getTileType(firstTile) != EnvCellType.empty)
             {
-                Debug.Log($"isPixelGrounded: tile ({firstTile.x}, {firstTile.y}) - ground");
+                //Debug.Log($"isPixelGrounded: tile ({firstTile.x}, {firstTile.y}) - ground");
                 answer = true;
             }
         }
@@ -248,7 +262,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (map.getTileType(secondTile) != EnvCellType.empty)
             {
-                Debug.Log($"isPixelGrounded: tile ({secondTile.x}, {secondTile.y}) - ground");
+                //Debug.Log($"isPixelGrounded: tile ({secondTile.x}, {secondTile.y}) - ground");
                 answer = true;
             }
         }
@@ -448,7 +462,10 @@ public class PlayerManager : MonoBehaviour
         {
             if (water.tileHasWater((int)pos.x, (int)pos.y))
             {
-                SceneManager.LoadScene("Death");
+                if (mortal)
+                {
+                    SceneManager.LoadScene("Death");
+                }
             }
         }
 
@@ -576,5 +593,6 @@ public class PlayerManager : MonoBehaviour
         GUI.TextField(new Rect(150, 175, 200, 20), "pryzhok: " + jumpForce.ToString("0.000"));
         gravity = GUI.HorizontalSlider(new Rect(25, 225, 100, 30), gravity, .01f, 1f);
         GUI.TextField(new Rect(150, 225, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
+        mortal = GUI.Toggle(new Rect(150, 250, 200, 20), mortal, "mortality: " + mortal.ToString());
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameStartStop : MonoBehaviour
 {
@@ -12,6 +13,11 @@ public class GameStartStop : MonoBehaviour
     public CameraBehaviour camerab;
     public WaterManager water;
     public PlayerManager player;
+
+    public Button startButton;
+    public Button creditsButton;
+    public Button quitButton;
+    
 
     public void GameStart()
     {
@@ -40,6 +46,13 @@ public class GameStartStop : MonoBehaviour
         
     }
 
+    void setButtonsEnabled(bool value)
+    {
+        startButton.enabled = value;
+        creditsButton.enabled = value;
+        quitButton.enabled = value;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -53,6 +66,7 @@ public class GameStartStop : MonoBehaviour
             if (canvasGroup.alpha <= 0.0f)
             {
                 fadeout = false;
+                setButtonsEnabled(false);
             }
         }
         if (fadein)
@@ -61,6 +75,7 @@ public class GameStartStop : MonoBehaviour
             if (canvasGroup.alpha >= 1.0f)
             {
                 fadein = false;
+                setButtonsEnabled(true);
             }
         }
     }

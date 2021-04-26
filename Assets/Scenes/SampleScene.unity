@@ -802,6 +802,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 54a1ec5700cc3de4d9dbcdcd9266b386, type: 3}
   - {fileID: 8300000, guid: 8d2215c96bf40514b9bfc774da802390, type: 3}
   mortal: 1
+  damaged: 0
+  damagedDelay: 0
   isDead: 0
 --- !u!4 &957891261
 Transform:
@@ -888,6 +890,9 @@ MonoBehaviour:
   camerab: {fileID: 519420034}
   water: {fileID: 1780290109}
   player: {fileID: 957891260}
+  startButton: {fileID: 1375070562}
+  creditsButton: {fileID: 721465950}
+  quitButton: {fileID: 1298451042}
 --- !u!4 &1019717482
 Transform:
   m_ObjectHideFlags: 0

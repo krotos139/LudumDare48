@@ -477,7 +477,6 @@ public class PlayerManager : MonoBehaviour
                     if (mortal)
                     {
                         isDead = true;
-                        SceneManager.LoadScene("Death");
                     }
                 }
                 if (health == 1)

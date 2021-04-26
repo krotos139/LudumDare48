@@ -47,6 +47,8 @@ public class PlayerManager : MonoBehaviour
     private AudioSource[] audioSources = new AudioSource[2];
 
     public bool mortal = true;
+    public bool damaged;
+    public int damagedDelay = 0;
     public bool isDead = false;
 
     private enum MovementDirection
@@ -362,6 +364,11 @@ public class PlayerManager : MonoBehaviour
             Die();
         }
 
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            Damage();
+        }
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             if (health == 2)
@@ -462,11 +469,34 @@ public class PlayerManager : MonoBehaviour
 
         if (map.isValidTileIndices((int)pos.x, (int)pos.y))
         {
-            if (water.tileHasWater((int)pos.x, (int)pos.y))
+            if (water.tileHasWater((int)pos.x, (int)pos.y) && !damaged)
             {
-                if (mortal)
+                if (health == 0)
                 {
-                    isDead = true;
+                    anim.SetTrigger("death");
+                    if (mortal)
+                    {
+                        isDead = true;
+                        SceneManager.LoadScene("Death");
+                    }
+                }
+                if (health == 1)
+                {
+                    health = 0;
+                    anim.SetInteger("health", health);
+                    anim.SetTrigger("health_0");
+                    anim.SetTrigger("damaged");
+                    damaged = true;
+                    damagedDelay = 200;
+                }
+                if (health == 2)
+                    {
+                    health = 1;
+                    anim.SetInteger("health", health);
+                    anim.SetTrigger("health_1");
+                    anim.SetTrigger("damaged");
+                    damaged = true;
+                    damagedDelay = 200;
                 }
             }
         }
@@ -510,7 +540,13 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-
+        if (damaged)
+        {
+            if (--damagedDelay <= 0)
+            {
+                damaged = false;
+            }
+        }
     }
 
     void CheckTiles()
@@ -602,5 +638,10 @@ public class PlayerManager : MonoBehaviour
         gravity = GUI.HorizontalSlider(new Rect(25, 225, 100, 30), gravity, .01f, 1f);
         GUI.TextField(new Rect(150, 225, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
         mortal = GUI.Toggle(new Rect(150, 250, 200, 20), mortal, "mortality: " + mortal.ToString());
+    }
+
+    private void Damage()
+    {
+        anim.SetTrigger("damaged");
     }
 }

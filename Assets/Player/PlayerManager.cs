@@ -478,6 +478,8 @@ public class PlayerManager : MonoBehaviour
                     {
                         isDead = true;
                     }
+                    damaged = true;
+                    damagedDelay = 200;
                 }
                 if (health == 1)
                 {

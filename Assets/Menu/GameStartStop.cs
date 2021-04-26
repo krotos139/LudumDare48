@@ -17,7 +17,6 @@ public class GameStartStop : MonoBehaviour
     public Button startButton;
     public Button creditsButton;
     public Button quitButton;
-    
 
     public void GameStart()
     {
@@ -47,7 +46,7 @@ public class GameStartStop : MonoBehaviour
         
     }
 
-    void setButtonsEnabled(bool value)
+    public void setButtonsEnabled(bool value)
     {
         startButton.enabled = value;
         creditsButton.enabled = value;

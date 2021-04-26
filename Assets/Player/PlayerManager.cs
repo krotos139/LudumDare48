@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -26,6 +27,23 @@ public class PlayerManager : MonoBehaviour
     Animator anim;
 
     public WaterManager water;
+
+    // Ambient
+    public AudioMixer mixer;
+    public int TopToUndergroundY = 0;
+    public int UndergroundToTopY = -10;
+    public AudioClip[] clipsBGT = new AudioClip[2];
+    public AudioClip[] clipsBGU = new AudioClip[2];
+    private AudioSource[] audioSourcesBGT ;
+    private AudioSource[] audioSourcesBGU ;
+
+    // Music
+    public AudioClip[] clips = new AudioClip[2];
+    private int clipsVolume = -20;
+
+    private int flip = 0;
+    private int clipIndex = 0;
+    private AudioSource[] audioSources = new AudioSource[2];
 
     private enum MovementDirection
     {
@@ -59,7 +77,41 @@ public class PlayerManager : MonoBehaviour
         health = 2;
         anim.SetTrigger("health_2");
         anim.SetBool("run", false);
+
+        // Ambient
+
+        audioSourcesBGT = new AudioSource[clipsBGT.Length];
+        for (int i = 0; i < clipsBGT.Length; i++)
+        {
+            audioSourcesBGT[i] = gameObject.AddComponent<AudioSource>();
+            audioSourcesBGT[i].clip = clipsBGT[i];
+            audioSourcesBGT[i].loop = true;
+            string _OutputMixer = string.Format("BGT{0}", (i + 1));
+            audioSourcesBGT[i].outputAudioMixerGroup = mixer.FindMatchingGroups(_OutputMixer)[0];
+            audioSourcesBGT[i].Play(0);
+        }
+        audioSourcesBGU = new AudioSource[clipsBGU.Length];
+        for (int i = 0; i < clipsBGU.Length; i++)
+        {
+            audioSourcesBGU[i] = gameObject.AddComponent<AudioSource>();
+            audioSourcesBGU[i].clip = clipsBGU[i];
+            audioSourcesBGU[i].loop = true;
+            string _OutputMixer = string.Format("BGU{0}", (i + 1));
+            audioSourcesBGU[i].outputAudioMixerGroup = mixer.FindMatchingGroups(_OutputMixer)[0];
+            audioSourcesBGU[i].Play(0);
+        }
+
+        // Music
+        for (int i = 0; i < 2; i++)
+        {
+            audioSources[i] = gameObject.AddComponent<AudioSource>();
+            audioSources[i].outputAudioMixerGroup = mixer.FindMatchingGroups("Music")[0];
+        }
+        clipIndex = Random.Range(0, clips.Length-1);
+        mixer.SetFloat("Music", clipsVolume);
+
     }
+
 
     private void movementBlock(Vector2 curPos, MovementDirection dir)
     {
@@ -131,6 +183,12 @@ public class PlayerManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    float myClamp(float val, float min, float max)
+    {
+        float v = (val - min) / (max - min);
+        return Mathf.Min(1.0f, Mathf.Max(0.0f, v));
     }
 
     void Update()
@@ -249,6 +307,48 @@ public class PlayerManager : MonoBehaviour
                 SceneManager.LoadScene("Death");
             }
         }
+
+        float levelTU = myClamp(y, TopToUndergroundY, UndergroundToTopY);
+        if (levelTU > 1.0f) levelTU = 1.0f;
+        if (levelTU < 0.0f) levelTU = 0.0f;
+        mixer.SetFloat("BGT", -80.0f * levelTU);
+        mixer.SetFloat("BGU", levelTU * 80.0f - 80.0f);
+
+        float noiseValue = Mathf.PerlinNoise(x / 30, Time.time * 0.05f);
+        float countEmbs = 5.0f;
+        
+        float emb1 = myClamp(noiseValue, 1.0f / countEmbs, 0.0f);
+        float emb2 = myClamp(noiseValue, 2.0f / countEmbs, 1.0f / countEmbs) - myClamp(noiseValue, 1.0f / countEmbs, 0.0f);
+        float emb3 = myClamp(noiseValue, 3.0f / countEmbs, 2.0f / countEmbs) - myClamp(noiseValue, 2.0f / countEmbs, 1.0f / countEmbs);
+        float emb4 = myClamp(noiseValue, 4.0f / countEmbs, 3.0f / countEmbs) - myClamp(noiseValue, 3.0f / countEmbs, 2.0f / countEmbs);
+        float emb5 = myClamp(noiseValue, 5.0f / countEmbs, 4.0f / countEmbs) - myClamp(noiseValue, 4.0f / countEmbs, 3.0f / countEmbs);
+
+        mixer.SetFloat("BGT1", emb1 * 80.0f - 80.0f);
+        mixer.SetFloat("BGT2", emb2 * 80.0f - 80.0f);
+        mixer.SetFloat("BGT3", emb3 * 80.0f - 80.0f);
+        mixer.SetFloat("BGT4", emb4 * 80.0f - 80.0f);
+        mixer.SetFloat("BGT5", emb5 * 80.0f - 80.0f);
+        mixer.SetFloat("BGU1", emb1 * 80.0f - 80.0f);
+        mixer.SetFloat("BGU2", emb2 * 80.0f - 80.0f);
+        mixer.SetFloat("BGU3", emb3 * 80.0f - 80.0f);
+        mixer.SetFloat("BGU4", emb4 * 80.0f - 80.0f);
+        mixer.SetFloat("BGU5", emb5 * 80.0f - 80.0f);
+        
+
+        if (!audioSources[1- clipIndex].isPlaying)
+        {
+            audioSources[flip].clip = clips[clipIndex];
+            audioSources[flip].Play(0);
+            Debug.Log("Scheduled source " + flip);
+            flip = 1 - flip;
+            clipIndex = clipIndex + 1;
+            if (clipIndex+1 >= clips.Length)
+            {
+                clipIndex = 0;
+            }
+        }
+
+
     }
 
     void CheckTiles()

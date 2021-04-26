@@ -15,12 +15,18 @@ public class InteractiveCell
     int zone = 0;
     EnvCellType cellType = EnvCellType.empty;
     public int neighbours = 0;
+    public int garbage = -1;
 
     public InteractiveCell(EnvCellType _cellType, int curZone)
     {
         cellType = _cellType;
         durability = typeDurability[cellType];
         zone = curZone;
+        if (_cellType == EnvCellType.ground && Random.Range(0,100) < 10)
+        {
+            garbage = Random.Range(0, 9);
+        }
+        
     }
 
     public bool Hit()
@@ -54,6 +60,7 @@ public class CreatorBehaviour : MonoBehaviour
     public Tile emptyTile;
     public Tilemap levelTilemap;
     public Tilemap decalTilemap;
+    public Tilemap gbTilemap;
     public PlayerManager player;
 
     public int width = 50;
@@ -362,6 +369,7 @@ public class CreatorBehaviour : MonoBehaviour
 
     Dictionary<EnvCellType, Tile[]> tilesheet = new Dictionary<EnvCellType, Tile[]>();
     Dictionary<EnvCellType, Tile[]> decals = new Dictionary<EnvCellType, Tile[]>();
+    Tile[] garbages = new Tile[9];
 
     string getNeighTileName(EnvCellType curType, bool [] neighs)
     {
@@ -431,6 +439,16 @@ public class CreatorBehaviour : MonoBehaviour
         }
     }
 
+    private void loadGarbagesAsset()
+    {
+        string folderName = "gb_tilesheet";
+
+        for (int i = 0; i < 9; i++)
+        {
+            garbages[i] = Resources.Load<Tile>(folderName + "_" + i);
+        }
+    }
+
     private void showDecalEmpty(int x, int y)
     {
         int rx = x - width / 2;
@@ -452,6 +470,27 @@ public class CreatorBehaviour : MonoBehaviour
         Tile tile = decals[cell.getType()][decalIndex];
         decalTilemap.SetTile(new Vector3Int(rx, ry, 0), tile);
         
+    }
+
+    private void showGarbageEmpty(int x, int y)
+    {
+        int rx = x - width / 2;
+        int ry = height / 2 - y;
+        gbTilemap.SetTile(new Vector3Int(rx, ry, 0), null);
+    }
+
+    private void showGarbage(int x, int y, ref InteractiveCell cell)
+    {
+        int rx = x - width / 2;
+        int ry = height / 2 - y;
+        if (cell.getType() != EnvCellType.ground || cell.garbage == -1)
+        {
+            gbTilemap.SetTile(new Vector3Int(rx, ry, 0), null);
+            return;
+        }
+        Tile tile = garbages[cell.garbage];
+        gbTilemap.SetTile(new Vector3Int(rx, ry, 0), tile);
+
     }
 
     // do late so that the player has a chance to move in update if necessary
@@ -518,6 +557,7 @@ public class CreatorBehaviour : MonoBehaviour
                         break;
                     case EnvCellType.ground:
                         levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.ground][cell.neighbours]);
+                        
                         break;
                     case EnvCellType.rock:
                         levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rock][cell.neighbours]);
@@ -529,6 +569,7 @@ public class CreatorBehaviour : MonoBehaviour
                         levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rust][cell.neighbours]);
                         break;
                 }
+                showGarbage(x, y, ref cell);
                 showDecalEmpty(x, y);
             }
         }
@@ -677,6 +718,7 @@ public class CreatorBehaviour : MonoBehaviour
     {
         if (tiles == null)
         {
+            loadGarbagesAsset();
             loadTileAsset("rust", EnvCellType.rust);
             loadDecalAsset("rust", EnvCellType.rust);
             loadTileAsset("ground", EnvCellType.ground);
@@ -749,6 +791,7 @@ public class CreatorBehaviour : MonoBehaviour
                     //showLevel(curCell.getZone());
                     showLevelTile(tileInds.x, tileInds.y);
                     showDecalEmpty(tileInds.x, tileInds.y);
+                    showGarbageEmpty(tileInds.x, tileInds.y);
                 } else
                 {
                     showDecal(tileInds.x, tileInds.y, ref curCell);

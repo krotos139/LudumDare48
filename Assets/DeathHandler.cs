@@ -87,9 +87,10 @@ public class DeathHandler : MonoBehaviour
             }
         }
 
-        if (isBackFaded && isYoudiedFaded && isWasteFaded)
-        {
+        if (isBackFaded && isYoudiedFaded && isWasteFaded && Input.GetMouseButtonDown(0)) clicked = true;
 
+        if (clicked)
+        {
             fadeOutAlpha -= Time.deltaTime * fadeSpeed;
 
             backImage.color = new Color(0f, 0f, 0f, fadeOutAlpha);
@@ -99,12 +100,7 @@ public class DeathHandler : MonoBehaviour
             if (fadeOutAlpha <= 0f) fadedOut = true;
         }
 
-        Debug.Log($"fadedOut: {fadedOut}");
-
-        if (fadedOut)
-        {
-            SceneManager.LoadScene("SampleScene");
-        }
+        if (fadedOut && clicked) SceneManager.LoadScene("SampleScene");
     }
 
 }

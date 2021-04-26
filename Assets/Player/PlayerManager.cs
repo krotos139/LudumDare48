@@ -47,6 +47,7 @@ public class PlayerManager : MonoBehaviour
     private AudioSource[] audioSources = new AudioSource[2];
 
     public bool mortal = true;
+    public bool isDead = false;
 
     private enum MovementDirection
     {
@@ -460,7 +461,7 @@ public class PlayerManager : MonoBehaviour
             {
                 if (mortal)
                 {
-                    SceneManager.LoadScene("Death");
+                    isDead = true;
                 }
             }
         }

@@ -39,7 +39,7 @@ public class CameraBehaviour : MonoBehaviour
                 if (map != null)
                 {
                     cam = GetComponent<Camera>();
-                    float halfWorldWidth = map.width / 2.0f;
+                    float halfWorldWidth = map.width / 2.0f + 8.0f;
                     cam.orthographicSize = halfWorldWidth / cam.aspect;
                     fixedSize = true;
                 }
@@ -58,7 +58,7 @@ public class CameraBehaviour : MonoBehaviour
         {
             pos = new Vector3(
                 0.0f,
-                transform.position.y + (150.0f - transform.position.y) * 0.01f,
+                transform.position.y + (154.0f - transform.position.y) * 0.01f,
                 -10);
 
         }        

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class DeathHandler : MonoBehaviour
 {
@@ -25,6 +26,10 @@ public class DeathHandler : MonoBehaviour
     float wasteAlpha = 0f;
 
 
+    bool fadedOut = false;
+    float fadeOutAlpha = 1f;
+
+
     void Start()
     {
         canvas.enabled = false;
@@ -37,7 +42,7 @@ public class DeathHandler : MonoBehaviour
     {
         if (!playerManager.isDead) return;
 
-        //gameStartStop.GameStop();
+        if (!fadedOut) gameStartStop.GameStop();
 
         // enable canvas
         if (!canvas.enabled) canvas.enabled = true;
@@ -68,6 +73,21 @@ public class DeathHandler : MonoBehaviour
 
             if (wasteAlpha >= 1f) isWasteFaded = true;
         }
+
+        if (isBackFaded && isYoudiedFaded && isWasteFaded)
+        {
+            fadeOutAlpha -= Time.deltaTime * fadeSpeed;
+
+            backImage.color = new Color(0f, 0f, 0f, fadeOutAlpha);
+            youdiedImage.color = new Color(117f, 171f, 134f, fadeOutAlpha);
+            wasteImage.color = new Color(117f, 171f, 134f, fadeOutAlpha);
+
+            if (fadeOutAlpha <= 0f) fadedOut = true;
+        }
+
+        Debug.Log($"fadedOut: {fadedOut}");
+
+        if (fadedOut) SceneManager.LoadScene("SampleScene");
     }
 
 }

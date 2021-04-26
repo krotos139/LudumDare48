@@ -8,6 +8,18 @@ public class CameraBehaviour : MonoBehaviour
     private Camera cam;
 
     private bool fixedSize = false;
+    private bool started = false;
+
+
+    public void startGame()
+    {
+        started = true;
+    }
+
+    public void stopGame()
+    {
+        started = false;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -33,11 +45,23 @@ public class CameraBehaviour : MonoBehaviour
                 }
             }
         }
-        Vector3 pos = new Vector3(
-            //transform.position.x + (player.transform.position.x - transform.position.x) * 0.01f,
-            0.0f,
-            transform.position.y + (player.transform.position.y - transform.position.y) * 0.01f, 
-            -10);
+
+        Vector3 pos;
+        if (started)
+        {
+            pos = new Vector3(
+                0.0f,
+                transform.position.y + (player.transform.position.y - transform.position.y) * 0.01f,
+                -10);
+        }
+        else
+        {
+            pos = new Vector3(
+                0.0f,
+                transform.position.y + (150.0f - transform.position.y) * 0.01f,
+                -10);
+
+        }        
         transform.position = pos;
     }
 }

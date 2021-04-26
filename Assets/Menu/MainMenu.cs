@@ -7,13 +7,16 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-
+    public GameStartStop gameStartStop;
     public Image btn_image;
 
     public void onStart()
     {
         Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-        SceneManager.LoadScene("SampleScene");
+        if (gameStartStop != null)
+        {
+            gameStartStop.GameStart();
+        }
     }
 
     public void onCredits()
@@ -46,12 +49,12 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void OnPointerEnter(PointerEventData eventData)
     {
         btn_image.enabled = true;
-        Debug.Log("Mouse enter");
+        //Debug.Log("Mouse enter");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         btn_image.enabled = false;
-        Debug.Log("Mouse exit");
+        //Debug.Log("Mouse exit");
     }
 }

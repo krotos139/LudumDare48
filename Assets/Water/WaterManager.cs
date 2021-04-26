@@ -27,6 +27,20 @@ public class WaterManager : MonoBehaviour
 
     public float waterVolume;
 
+    private bool started = false;
+
+
+    public void startGame()
+    {
+        started = true;
+    }
+
+    public void stopGame()
+    {
+        started = false;
+    }
+
+
     void Start()
     {
         map = world.GetComponent<CreatorBehaviour>();
@@ -147,7 +161,7 @@ public class WaterManager : MonoBehaviour
 
     void Update()
     {
-        if (map != null)
+        if (map != null && started)
         {
             syncLevel();
 

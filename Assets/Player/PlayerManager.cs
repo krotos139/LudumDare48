@@ -354,6 +354,7 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
+        /*
         if (Input.GetKeyDown(KeyCode.F))
         {
             Dig();
@@ -396,32 +397,37 @@ public class PlayerManager : MonoBehaviour
                 anim.SetTrigger("health_2");
             }
         }
+        */
 
         Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
         relPosition.y = map.height - relPosition.y;
         grounded = isPixelGrounded(relPosition);
-        
-        if (Input.GetKey(KeyCode.Space))
+
+        if (!isDead)
         {
-            if (grounded)
+            if (Input.GetKey(KeyCode.Space))
             {
-                accelY = jumpForce;
-                anim.SetInteger("accel_y", 1);
-                anim.SetBool("grounded", false);
-                anim.SetTrigger("jump");
+                if (grounded)
+                {
+                    accelY = jumpForce;
+                    anim.SetInteger("accel_y", 1);
+                    anim.SetBool("grounded", false);
+                    anim.SetTrigger("jump");
+                }
             }
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            accelY -= accelForce;
-        }
-        if (Input.GetKey(KeyCode.D))
-        {
-            accelX += accelForce;
-        }
-        if (Input.GetKey(KeyCode.A))
-        {
-            accelX -= accelForce;
+
+            if (Input.GetKey(KeyCode.S))
+            {
+                accelY -= accelForce;
+            }
+            if (Input.GetKey(KeyCode.D))
+            {
+                accelX += accelForce;
+            }
+            if (Input.GetKey(KeyCode.A))
+            {
+                accelX -= accelForce;
+            }
         }
         if (accelX > (accelForce / 10) || (accelX < -accelForce / 10))
         {
@@ -479,7 +485,7 @@ public class PlayerManager : MonoBehaviour
                         isDead = true;
                     }
                     damaged = true;
-                    damagedDelay = 200;
+                    damagedDelay = 800;
                 }
                 if (health == 1)
                 {

@@ -23,6 +23,7 @@ public class GameStartStop : MonoBehaviour
         fadeout = true;
         camerab.startGame();
         water.startGame();
+        player.isDead = false;
     }
 
     public void GameStop()

@@ -29,6 +29,11 @@ public class DeathHandler : MonoBehaviour
     bool fadedOut = false;
     float fadeOutAlpha = 1f;
 
+    bool clicked = false;
+
+
+    float delay = 0.0f;
+
 
     void Start()
     {
@@ -42,7 +47,11 @@ public class DeathHandler : MonoBehaviour
     {
         if (!playerManager.isDead) return;
 
-        if (!fadedOut) gameStartStop.GameStop();
+        if (delay < 500.0f)
+        {
+            delay++;
+            return;
+        }
 
         // enable canvas
         if (!canvas.enabled) canvas.enabled = true;
@@ -71,11 +80,16 @@ public class DeathHandler : MonoBehaviour
             wasteAlpha += Time.deltaTime * fadeSpeed;
             wasteImage.color = new Color(117f, 171f, 134f, wasteAlpha);
 
-            if (wasteAlpha >= 1f) isWasteFaded = true;
+            if (wasteAlpha >= 1f)
+            {
+                isWasteFaded = true;
+                if (!fadedOut) gameStartStop.GameStop();
+            }
         }
 
         if (isBackFaded && isYoudiedFaded && isWasteFaded)
         {
+
             fadeOutAlpha -= Time.deltaTime * fadeSpeed;
 
             backImage.color = new Color(0f, 0f, 0f, fadeOutAlpha);
@@ -87,7 +101,10 @@ public class DeathHandler : MonoBehaviour
 
         Debug.Log($"fadedOut: {fadedOut}");
 
-        if (fadedOut) SceneManager.LoadScene("SampleScene");
+        if (fadedOut)
+        {
+            SceneManager.LoadScene("SampleScene");
+        }
     }
 
 }

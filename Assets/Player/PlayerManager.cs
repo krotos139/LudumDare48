@@ -357,6 +357,11 @@ public class PlayerManager : MonoBehaviour
             Dig();
         }
 
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            Die();
+        }
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             if (health == 2)
@@ -411,7 +416,7 @@ public class PlayerManager : MonoBehaviour
         {
             accelX -= accelForce;
         }
-        if (accelX > (accelForce / 2) || (accelX < -accelForce / 2))
+        if (accelX > (accelForce / 10) || (accelX < -accelForce / 10))
         {
             anim.SetBool("run", true);
         }
@@ -574,7 +579,13 @@ public class PlayerManager : MonoBehaviour
 
     public void Dig()
     {
+        anim.SetInteger("health", health);
         anim.SetTrigger("dig");
+    }
+
+    public void Die()
+    {
+        anim.SetTrigger("death");
     }
 
     private void OnGUI()

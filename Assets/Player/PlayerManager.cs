@@ -49,6 +49,7 @@ public class PlayerManager : MonoBehaviour
     public bool mortal = true;
     public bool damaged;
     public int damagedDelay = 0;
+    public bool isDead = false;
 
     private enum MovementDirection
     {
@@ -475,6 +476,7 @@ public class PlayerManager : MonoBehaviour
                     anim.SetTrigger("death");
                     if (mortal)
                     {
+                        isDead = true;
                         SceneManager.LoadScene("Death");
                     }
                 }

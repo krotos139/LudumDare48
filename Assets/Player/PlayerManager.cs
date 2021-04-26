@@ -171,7 +171,11 @@ public class PlayerManager : MonoBehaviour
         Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
         relPosition.y = map.height - relPosition.y;
         grounded = isGrounded(relPosition);
-
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            SceneManager.LoadScene("MainMenu");
+        }
         if (Input.GetKey(KeyCode.Space))
         {
             if (grounded)

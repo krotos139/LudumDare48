@@ -987,8 +987,8 @@ MonoBehaviour:
   world: {fileID: 463557643}
   water: {fileID: 1780290109}
   mixer: {fileID: 24100000, guid: 603003ba3a0c2df4d8e2cc9c211ccd12, type: 2}
-  TopToUndergroundY: 0
-  UndergroundToTopY: -10
+  TopToUndergroundY: 5
+  UndergroundToTopY: 15
   clipsBGT:
   - {fileID: 8300000, guid: b2306ea540e6456459a1bdeabdebbd06, type: 3}
   - {fileID: 8300000, guid: 00df97e19defed9408caeb21a11e6a79, type: 3}
@@ -1009,6 +1009,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c1a4a078cbbc797459b97bccc04e9168, type: 3}
   - {fileID: 8300000, guid: 54a1ec5700cc3de4d9dbcdcd9266b386, type: 3}
   - {fileID: 8300000, guid: 8d2215c96bf40514b9bfc774da802390, type: 3}
+  clipsDigGround: {fileID: 8300000, guid: 611d66578abe32847bd8d660b1eb9871, type: 3}
+  clipsDigRust: {fileID: 8300000, guid: e8064373782812b45b43916e1185af6d, type: 3}
+  clipsDigRock: {fileID: 8300000, guid: f460ea096f246ad4c8be85e1082419c1, type: 3}
   mortal: 1
   damaged: 0
   damagedDelay: 0

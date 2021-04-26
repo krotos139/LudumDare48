@@ -31,8 +31,8 @@ public class PlayerManager : MonoBehaviour
 
     // Ambient
     public AudioMixer mixer;
-    public int TopToUndergroundY = 0;
-    public int UndergroundToTopY = -10;
+    public int TopToUndergroundY = 15;
+    public int UndergroundToTopY = 5;
     public AudioClip[] clipsBGT = new AudioClip[2];
     public AudioClip[] clipsBGU = new AudioClip[2];
     private AudioSource[] audioSourcesBGT ;
@@ -40,7 +40,7 @@ public class PlayerManager : MonoBehaviour
 
     // Music
     public AudioClip[] clips = new AudioClip[2];
-    private int clipsVolume = -20;
+    private int clipsVolume = -10;
 
     private int flip = 0;
     private int clipIndex = 1;
@@ -537,7 +537,10 @@ public class PlayerManager : MonoBehaviour
             }
         }
 
-        float levelTU = myClamp(y, TopToUndergroundY, UndergroundToTopY);
+        Vector2 relPos = getPosition();
+
+        float levelTU = myClamp(relPos.y, TopToUndergroundY, UndergroundToTopY);
+        Debug.Log("relPos.y:" + relPos.y + " TopToUndergroundY:" + TopToUndergroundY + " UndergroundToTopY:" + UndergroundToTopY);
         if (levelTU > 1.0f) levelTU = 1.0f;
         if (levelTU < 0.0f) levelTU = 0.0f;
         mixer.SetFloat("BGT", -80.0f * levelTU);

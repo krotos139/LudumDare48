@@ -21,6 +21,8 @@ public class WaterGrid : MonoBehaviour
 
     public cellType[,] cells;
 
+    public int vyazkost = 3;
+
     public class Coords
     {
         public int x, y;
@@ -143,9 +145,9 @@ public class WaterGrid : MonoBehaviour
             // empty bottom
             updateNeighbour(i, j + 1, lakeIndex);
             // right side
-            updateNeighbour(i + 1, j, lakeIndex);
+            if (Random.Range(0, vyazkost) < 5) updateNeighbour(i + 1, j, lakeIndex);
             // left side
-            updateNeighbour(i - 1, j, lakeIndex);
+            if (Random.Range(0, vyazkost) < 5) updateNeighbour(i - 1, j, lakeIndex);
 
             for (int moveIndex = 0; moveIndex < 8; ++moveIndex)
             {

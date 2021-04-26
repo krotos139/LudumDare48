@@ -18,6 +18,7 @@ public class WaterManager : MonoBehaviour
     public int waterDelay = 0;
     private int waterCurDelay = 0;
     float time;
+    public int speed = 2;
 
     public float waterVolume;
 
@@ -51,6 +52,7 @@ public class WaterManager : MonoBehaviour
 
         syncLevel();
         time = 0.0f;
+        speed = 2;
     }
 
     public bool tileHasWater(int tileX, int tileY)
@@ -144,7 +146,7 @@ public class WaterManager : MonoBehaviour
 
             if (waterCurDelay == waterDelay)
             {
-                if (Random.Range(1, 6) == 4)
+                if (Random.Range(0, 100 / speed) <4)
                 {
                     waterGrid.cells[45, 5] = WaterGrid.cellType.water;
                     waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
@@ -159,5 +161,13 @@ public class WaterManager : MonoBehaviour
             rendedTexture();
         }
         time += 0.001f;
+    }
+
+    void OnGUI()
+    {
+        waterGrid.vyazkost = (int)GUI.HorizontalSlider(new Rect(25, 225, 100, 30), waterGrid.vyazkost, 0, 100);
+        GUI.TextField(new Rect(150, 225, 200, 20), "voda vyazkost: " + waterGrid.vyazkost.ToString("00"));
+        speed = (int)GUI.HorizontalSlider(new Rect(25, 275, 100, 30), speed, 2, 10);
+        GUI.TextField(new Rect(150, 275, 200, 20), "voda skorost: " + speed.ToString("00"));
     }
 }

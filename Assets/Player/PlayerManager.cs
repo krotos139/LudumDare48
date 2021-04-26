@@ -304,4 +304,17 @@ public class PlayerManager : MonoBehaviour
     {
         anim.SetTrigger("dig");
     }
+
+    private void OnGUI()
+    {
+        //GUI.Button(new Rect(50, 50, 100, 100), "test");
+        accelForce = GUI.HorizontalSlider(new Rect(25, 25, 100, 30), accelForce, .0001f, .01f);
+        GUI.TextField(new Rect(150, 25, 200, 20), "uskorenie: " + accelForce.ToString("0.0000"));
+        accelDecay = GUI.HorizontalSlider(new Rect(25, 75, 100, 30), accelDecay, 0f, 1f);
+        GUI.TextField(new Rect(150, 75, 200, 20), "zatuhanie uskoreniya: " + accelDecay.ToString("0.00"));
+        jumpForce = GUI.HorizontalSlider(new Rect(25, 125, 100, 30), jumpForce, .01f, 1f);
+        GUI.TextField(new Rect(150, 125, 200, 20), "pryzhok: " + jumpForce.ToString("0.000"));
+        gravity = GUI.HorizontalSlider(new Rect(25, 175, 100, 30), gravity, .01f, 1f);
+        GUI.TextField(new Rect(150, 175, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
+    }
 }

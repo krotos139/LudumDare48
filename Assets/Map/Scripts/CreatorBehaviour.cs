@@ -10,7 +10,7 @@ public enum EnvCellType
 
 public class InteractiveCell
 {
-    static Dictionary<EnvCellType, int> typeDurability = new Dictionary<EnvCellType, int>() { { EnvCellType.empty, 0 }, { EnvCellType.ground, 2 }, { EnvCellType.rock, 4 }, { EnvCellType.rust, 2 }, { EnvCellType.metal, 999 } };
+    public static Dictionary<EnvCellType, int> typeDurability = new Dictionary<EnvCellType, int>() { { EnvCellType.empty, 0 }, { EnvCellType.ground, 2 }, { EnvCellType.rock, 4 }, { EnvCellType.rust, 2 }, { EnvCellType.metal, 999 } };
     int durability = 0;
     int zone = 0;
     EnvCellType cellType = EnvCellType.empty;
@@ -52,24 +52,9 @@ public class CreatorBehaviour : MonoBehaviour
 {
 
     public Tile emptyTile;
-    public Tile groundTile;
-    public Tile rockTile;
-    public Tile metalTile;
-    public Tile rustTile;
     public Tilemap levelTilemap;
+    public Tilemap decalTilemap;
     public PlayerManager player;
-
-    public Texture2D pick;
-    public Texture2D pick1;
-    public Texture2D pick2;
-    public Texture2D pick3;
-    public Texture2D pick4;
-
-    public Texture2D shovel;
-    public Texture2D shovel1;
-    public Texture2D shovel2;
-    public Texture2D shovel3;
-    public Texture2D shovel4;
 
     public int width = 50;
     public int height = 50;
@@ -376,6 +361,7 @@ public class CreatorBehaviour : MonoBehaviour
     }
 
     Dictionary<EnvCellType, Tile[]> tilesheet = new Dictionary<EnvCellType, Tile[]>();
+    Dictionary<EnvCellType, Tile[]> decals = new Dictionary<EnvCellType, Tile[]>();
 
     string getNeighTileName(EnvCellType curType, bool [] neighs)
     {
@@ -433,6 +419,78 @@ public class CreatorBehaviour : MonoBehaviour
         }
     }
 
+    private void loadDecalAsset(string type, EnvCellType curType)
+    {
+
+        string folderName = "dc_"+type;
+        decals.Add(curType, new Tile[3]);
+
+        for (int i = 1; i < 4; i++)
+        {
+            decals[curType][i-1] = Resources.Load<Tile>(folderName+"_"+i);
+        }
+    }
+
+    private void showDecalEmpty(int x, int y)
+    {
+        int rx = x - width / 2;
+        int ry = height / 2 - y;
+        decalTilemap.SetTile(new Vector3Int(rx, ry, 0), null);
+    }
+
+    private void showDecal(int x, int y, ref InteractiveCell cell)
+    {
+        int rx = x - width / 2;
+        int ry = height / 2 - y ;
+        if (cell.getType() == EnvCellType.metal || cell.getType() == EnvCellType.empty)
+        {
+            decalTilemap.SetTile(new Vector3Int(rx, ry, 0), null);
+            return;
+        }
+        int maxDurability = InteractiveCell.typeDurability[cell.getType()];
+        int decalIndex = maxDurability - cell.getDurability() - 1;
+        Tile tile = decals[cell.getType()][decalIndex];
+        decalTilemap.SetTile(new Vector3Int(rx, ry, 0), tile);
+        
+    }
+
+    // do late so that the player has a chance to move in update if necessary
+    private void showLevelTile(int x, int y)
+    {
+        Vector3Int currentCell = new Vector3Int(0, 0, 0);
+
+        currentCell.x = x - width / 2;
+        currentCell.y = height / 2 - y ;
+
+        InteractiveCell cell = cells[0][x, y];
+
+        switch (levels[0][x, y])
+        {
+            case EnvCellType.empty:
+                if (y >= 5)
+                {
+                    levelTilemap.SetTile(currentCell, emptyTile);
+                }
+                else
+                {
+                    levelTilemap.SetTile(currentCell, null); // just don't draw it
+                }
+                break;
+            case EnvCellType.ground:
+                levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.ground][cell.neighbours]);
+                break;
+            case EnvCellType.rock:
+                levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rock][cell.neighbours]);
+                break;
+            case EnvCellType.metal:
+                levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.metal][cell.neighbours]);
+                break;
+            case EnvCellType.rust:
+                levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rust][cell.neighbours]);
+                break;
+        }
+    }
+
     // do late so that the player has a chance to move in update if necessary
     private void showLevel(int currentLevelIndex)
     {
@@ -471,6 +529,7 @@ public class CreatorBehaviour : MonoBehaviour
                         levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rust][cell.neighbours]);
                         break;
                 }
+                showDecalEmpty(x, y);
             }
         }
     }
@@ -619,8 +678,11 @@ public class CreatorBehaviour : MonoBehaviour
         if (tiles == null)
         {
             loadTileAsset("rust", EnvCellType.rust);
+            loadDecalAsset("rust", EnvCellType.rust);
             loadTileAsset("ground", EnvCellType.ground);
+            loadDecalAsset("ground", EnvCellType.ground);
             loadTileAsset("rock", EnvCellType.rock);
+            loadDecalAsset("rock", EnvCellType.rock);
             loadTileAsset("metal", EnvCellType.metal);
 
             Random.InitState((int)System.DateTime.Now.Ticks);
@@ -669,39 +731,7 @@ public class CreatorBehaviour : MonoBehaviour
                 {
                     // only detroying 
 
-                    canInteract = true;
-
-                    if (cellType == EnvCellType.ground || cellType == EnvCellType.rust)
-                    {
-                        switch(cellDurability)
-                        {
-                            case 1:
-                                Cursor.SetCursor(shovel4, Vector2.zero, CursorMode.Auto);
-                                break;
-                            case 2:
-                                Cursor.SetCursor(shovel, Vector2.zero, CursorMode.Auto);
-                                break;
-                        }
-                    }
-                    if (cellType == EnvCellType.rock)
-                    {
-                        switch (cellDurability)
-                        {
-                            case 1:
-                                Cursor.SetCursor(pick4, Vector2.zero, CursorMode.Auto);
-                                break;
-                            case 2:
-                                Cursor.SetCursor(pick3, Vector2.zero, CursorMode.Auto);
-                                break;
-                            case 3:
-                                Cursor.SetCursor(pick1, Vector2.zero, CursorMode.Auto);
-                                break;
-                            case 4:
-                                Cursor.SetCursor(pick, Vector2.zero, CursorMode.Auto);
-                                break;
-                        }
-                    }
-                    
+                    canInteract = true;                    
                 }
             }
             else
@@ -716,7 +746,12 @@ public class CreatorBehaviour : MonoBehaviour
                 if (!curCell.Hit())
                 {
                     int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);
-                    showLevel(curCell.getZone());
+                    //showLevel(curCell.getZone());
+                    showLevelTile(tileInds.x, tileInds.y);
+                    showDecalEmpty(tileInds.x, tileInds.y);
+                } else
+                {
+                    showDecal(tileInds.x, tileInds.y, ref curCell);
                 }
                 player.Dig();
             }

@@ -58,7 +58,7 @@ public class CameraBehaviour : MonoBehaviour
         {
             pos = new Vector3(
                 0.0f,
-                transform.position.y + (154.0f - transform.position.y) * 0.01f,
+                transform.position.y + (155.5f - transform.position.y) * 0.01f,
                 -10);
 
         }        

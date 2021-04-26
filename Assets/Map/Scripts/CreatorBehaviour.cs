@@ -233,7 +233,7 @@ public class CreatorBehaviour : MonoBehaviour
             if (levelTiles[x, height - 1] != EnvCellType.metal) levelTiles[x, height - 1] = EnvCellType.ground;
         }
 
-        int endingStart = 6;
+        int endingStart = 9;
 
         int conditionXmin = 0;
         int conditionXmax = width - 1;
@@ -248,7 +248,9 @@ public class CreatorBehaviour : MonoBehaviour
                 }
             }
             conditionXmin += 3;
+            if (conditionXmin > width) conditionXmin = width;
             conditionXmax -= 3;
+            if (conditionXmax < 0) conditionXmax = 0;
         }
 
 

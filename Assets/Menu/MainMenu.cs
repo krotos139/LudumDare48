@@ -9,6 +9,7 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public GameStartStop gameStartStop;
     public Image btn_image;
+    public AudioSource on_hover;
 
     public void onStart()
     {
@@ -49,6 +50,10 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void OnPointerEnter(PointerEventData eventData)
     {
         btn_image.enabled = true;
+        if (on_hover != null)
+        {
+            on_hover.Play();
+        }
         //Debug.Log("Mouse enter");
     }
 

@@ -35,6 +35,7 @@ public class GameStartStop : MonoBehaviour
 
     public void GamePause()
     {
+        //canvasGroup.enabled = true;
         fadein = true;
         camerab.stopGame();
         water.stopGame();

@@ -14,6 +14,7 @@ public class InteractiveCell
     int durability = 0;
     int zone = 0;
     EnvCellType cellType = EnvCellType.empty;
+    public int neighbours = 0;
 
     public InteractiveCell(EnvCellType _cellType, int curZone)
     {
@@ -112,6 +113,29 @@ public class CreatorBehaviour : MonoBehaviour
         return neighs;
     }
 
+    private int GetTileOrthoNeighbours(int ix, int iy, EnvCellType type)
+    {
+        int[] neighShifts = new int[] { 0, -1, 1, 0, 0, 1, -1, 0 };
+
+        int neighs = 0;
+
+        for (int i = 0; i < neighShifts.Length; i += 2)
+        {
+            int curX = ix + neighShifts[i];
+            int curY = iy + neighShifts[i + 1];
+
+            if (isValidTileIndices(curX, curY))
+            {
+                if (type == getTileType(curX, curY))
+                {
+                    neighs |=  1 << (i / 2);
+                }
+            }
+        }
+
+        return neighs;
+    }
+
     private EnvCellType getMaterialFromNoise(ref EnvCellType[] materials, ref float[] materialsThresholds, float noiseValue)
     {
         //return EnvCellType.ground;
@@ -129,7 +153,20 @@ public class CreatorBehaviour : MonoBehaviour
         return curType;
     }
 
-    private void fillLevelByNoise(ref EnvCellType [,] levelTiles, EnvCellType[] materials, float[] materialsWeights, float perlinCoefX, float perlinCoefY, float xorg, float yorg)
+    private void recalcNeighbours(ref InteractiveCell[,] levelCells)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                InteractiveCell cell = levelCells[x, y];
+                cell.neighbours = GetTileOrthoNeighbours(x, y, cell.getType());
+                levelCells[x, y] = cell;
+            }
+        }
+    }
+
+    private void fillLevelByNoise(ref EnvCellType[,] levelTiles, EnvCellType[] materials, float[] materialsWeights, float perlinCoefX, float perlinCoefY, float xorg, float yorg)
     {
         // use xorg and yorg for shifting perlin surface
         // materialsWeights - sum should be equal to 1.0
@@ -221,7 +258,7 @@ public class CreatorBehaviour : MonoBehaviour
             conditionXmin += 3;
             conditionXmax -= 3;
         }
-        
+
 
         // add metal boundaries
 
@@ -338,6 +375,67 @@ public class CreatorBehaviour : MonoBehaviour
         return levelIndex + 1;
     }
 
+    Dictionary<string, Tile> tilesheet = new Dictionary<string, Tile>();
+
+    Tile[] rust_tilesheet = new Tile[16];
+    Tile[] ground_tilesheet = new Tile[16];
+    Tile[] rock_tilesheet = new Tile[16];
+    Tile[] metal_tilesheet = new Tile[16];
+
+    string getNeighTileName(EnvCellType curType, bool [] neighs)
+    {
+        string answer = "";
+        switch(curType)
+        {
+            case EnvCellType.ground:
+                answer += "ground";
+                break;
+            case EnvCellType.rock:
+                answer += "rock";
+                break;
+            case EnvCellType.rust:
+                answer += "rust";
+                break;
+            case EnvCellType.metal:
+                answer += "metal";
+                break;
+        }
+        string [] suffixes = new string[4] { "U", "R", "D", "L" };
+        answer += "_tilesheet_";
+        for (int i = 0; i < 4; i++)
+        {
+            if (neighs[i])
+            {
+                answer += suffixes[i];
+            }
+        }
+        return answer;
+    }
+
+    private void loadTileAsset()
+    {
+        string folderName = "rust_tilesheet_";
+
+        rust_tilesheet[0] = Resources.Load<Tile>(folderName + "0");
+
+        for (int i = 1; i < 16; i++)
+        {
+            string tilename = folderName;
+
+            bool u = (i & 1) == 1;
+            bool r = (i & 2) == 2;
+            bool d = (i & 4) == 4;
+            bool l = (i & 8) == 8;
+
+            if (u) tilename += "U";
+            if (r) tilename += "R";
+            if (d) tilename += "D";
+            if (l) tilename += "L";
+
+            rust_tilesheet[i] = Resources.Load<Tile>(tilename);
+        }
+    }
+
     // do late so that the player has a chance to move in update if necessary
     private void showLevel(int currentLevelIndex)
     {
@@ -348,6 +446,9 @@ public class CreatorBehaviour : MonoBehaviour
             {
                 currentCell.x = x - width / 2;
                 currentCell.y = height / 2 - y - currentLevelIndex * height;
+
+                InteractiveCell cell = cells[currentLevelIndex][x, y];
+
                 switch (levels[currentLevelIndex][x, y])
                 {
                     case EnvCellType.empty:
@@ -370,7 +471,8 @@ public class CreatorBehaviour : MonoBehaviour
                         levelTilemap.SetTile(currentCell, metalTile);
                         break;
                     case EnvCellType.rust:
-                        levelTilemap.SetTile(currentCell, rustTile);
+                        //levelTilemap.SetTile(currentCell, rustTile);
+                        levelTilemap.SetTile(currentCell, rust_tilesheet[cell.neighbours]);
                         break;
                 }
             }
@@ -520,6 +622,8 @@ public class CreatorBehaviour : MonoBehaviour
     {
         if (tiles == null)
         {
+            loadTileAsset();
+
             Random.InitState((int)System.DateTime.Now.Ticks);
 
             levelXSeed = Random.Range(0, 10000);
@@ -534,6 +638,8 @@ public class CreatorBehaviour : MonoBehaviour
             InteractiveCell[,] levelCells = cells[0];
 
             SetInteractiveCells(ref tiles, ref levelCells, 0);
+
+            recalcNeighbours(ref levelCells);
 
             cells[0] = levelCells;
         }

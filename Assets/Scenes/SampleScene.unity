@@ -562,6 +562,29 @@ MonoBehaviour:
   playerSprite: {fileID: 21300000, guid: 7474a15c35b167745af0a63ef526dfe3, type: 3}
   world: {fileID: 463557643}
   water: {fileID: 1780290109}
+  mixer: {fileID: 0}
+  TopToUndergroundY: 0
+  UndergroundToTopY: -10
+  clipsBGT:
+  - {fileID: 8300000, guid: b2306ea540e6456459a1bdeabdebbd06, type: 3}
+  - {fileID: 8300000, guid: 00df97e19defed9408caeb21a11e6a79, type: 3}
+  - {fileID: 8300000, guid: 41323fe900094af46ab617baa8d525eb, type: 3}
+  - {fileID: 8300000, guid: f85054087148ac449b1aa6253a823c93, type: 3}
+  - {fileID: 8300000, guid: 0abb272450f46cd4e9273a9523f9fb8b, type: 3}
+  clipsBGU:
+  - {fileID: 8300000, guid: 131f200fd9049d94bb9d94a9e82a2347, type: 3}
+  - {fileID: 8300000, guid: 97f6cfff104b9b747aa97fd85bce082d, type: 3}
+  - {fileID: 8300000, guid: fd2e852e82658204c911eca4341942a3, type: 3}
+  - {fileID: 8300000, guid: 4d160776604f4064b9ded318355f978f, type: 3}
+  - {fileID: 8300000, guid: bdec5df79c73bc4408d8b29dc9dee9c6, type: 3}
+  clips:
+  - {fileID: 8300000, guid: 4b56876a4d74b46499caf5c4d6178e52, type: 3}
+  - {fileID: 8300000, guid: 2db87477ac1758544bbfe1132bf6e169, type: 3}
+  - {fileID: 8300000, guid: 5cab9709fd4218741b7ef843293bf071, type: 3}
+  - {fileID: 8300000, guid: 3664a1edaf4b4e34182ab0f6604d6092, type: 3}
+  - {fileID: 8300000, guid: c1a4a078cbbc797459b97bccc04e9168, type: 3}
+  - {fileID: 8300000, guid: 54a1ec5700cc3de4d9dbcdcd9266b386, type: 3}
+  - {fileID: 8300000, guid: 8d2215c96bf40514b9bfc774da802390, type: 3}
 --- !u!4 &957891261
 Transform:
   m_ObjectHideFlags: 0
@@ -883,6 +906,7 @@ MonoBehaviour:
   waterQuality: 4
   waterDelay: 1000
   accelTime: 600
+  speed: 2
   waterVolume: 0
 --- !u!212 &1780290110
 SpriteRenderer:

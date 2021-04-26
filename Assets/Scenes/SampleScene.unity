@@ -299,10 +299,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   emptyTile: {fileID: 11400000, guid: 5d4c1acd9446f7d40bcc14dda75fc917, type: 2}
-  groundTile: {fileID: 11400000, guid: fb796652e442bb348b72c5e15d2d3f70, type: 2}
-  rockTile: {fileID: 11400000, guid: 0c0d3ab9bec5cf64fb7cf5a8877528e2, type: 2}
-  metalTile: {fileID: 11400000, guid: 6a7f49939d859dd46a0ca10e7f73ac2d, type: 2}
-  rustTile: {fileID: 11400000, guid: c1bf3976995ff534094df1e7053b42e4, type: 2}
   levelTilemap: {fileID: 1245123923}
   decalTilemap: {fileID: 1281890316}
   player: {fileID: 957891260}
@@ -2627,7 +2623,7 @@ GameObject:
   - component: {fileID: 1477716599}
   - component: {fileID: 1477716598}
   m_Layer: 0
-  m_Name: Grid
+  m_Name: DecalGrid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2844,7 +2840,7 @@ MonoBehaviour:
   waterQuality: 4
   waterDelay: 1
   accelTime: 30
-  speed: 2
+  speed: 3
   waterVolume: 0
 --- !u!212 &1780290110
 SpriteRenderer:

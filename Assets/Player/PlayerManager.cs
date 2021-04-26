@@ -10,7 +10,7 @@ public class PlayerManager : MonoBehaviour
     private float accelXDecay = 0.1f;
     private float accelYDecay = 0.02f;
     private float jumpForce = 0.2f;
-    private float gravity = 0.15f;
+    private float gravity = 0.29f;
 
     private float x;
     private float y;
@@ -626,17 +626,17 @@ public class PlayerManager : MonoBehaviour
     private void OnGUI()
     {
         //GUI.Button(new Rect(50, 50, 100, 100), "test");
-        accelForce = GUI.HorizontalSlider(new Rect(25, 25, 100, 30), accelForce, .0001f, .01f);
-        GUI.TextField(new Rect(150, 25, 200, 20), "uskorenie: " + accelForce.ToString("0.0000"));
-        accelXDecay = GUI.HorizontalSlider(new Rect(25, 75, 100, 30), accelXDecay, 0f, 1f);
-        GUI.TextField(new Rect(150, 75, 200, 20), "zatuhanie uskoreniya: " + accelXDecay.ToString("0.00"));
-        accelYDecay = GUI.HorizontalSlider(new Rect(25, 125, 100, 30), accelYDecay, 0f, 1f);
-        GUI.TextField(new Rect(150, 125, 200, 20), "zatuhanie uskoreniya: " + accelYDecay.ToString("0.00"));
-        jumpForce = GUI.HorizontalSlider(new Rect(25, 175, 100, 30), jumpForce, .01f, 1f);
-        GUI.TextField(new Rect(150, 175, 200, 20), "pryzhok: " + jumpForce.ToString("0.000"));
-        gravity = GUI.HorizontalSlider(new Rect(25, 225, 100, 30), gravity, .01f, 1f);
-        GUI.TextField(new Rect(150, 225, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
-        mortal = GUI.Toggle(new Rect(150, 250, 200, 20), mortal, "mortality: " + mortal.ToString());
+        //accelForce = GUI.HorizontalSlider(new Rect(25, 25, 100, 30), accelForce, .0001f, .01f);
+        //GUI.TextField(new Rect(150, 25, 200, 20), "uskorenie: " + accelForce.ToString("0.0000"));
+        //accelXDecay = GUI.HorizontalSlider(new Rect(25, 75, 100, 30), accelXDecay, 0f, 1f);
+        //GUI.TextField(new Rect(150, 75, 200, 20), "zatuhanie uskoreniya: " + accelXDecay.ToString("0.00"));
+        //accelYDecay = GUI.HorizontalSlider(new Rect(25, 125, 100, 30), accelYDecay, 0f, 1f);
+        //GUI.TextField(new Rect(150, 125, 200, 20), "zatuhanie uskoreniya: " + accelYDecay.ToString("0.00"));
+        //jumpForce = GUI.HorizontalSlider(new Rect(25, 175, 100, 30), jumpForce, .01f, 1f);
+        //GUI.TextField(new Rect(150, 175, 200, 20), "pryzhok: " + jumpForce.ToString("0.000"));
+        //gravity = GUI.HorizontalSlider(new Rect(25, 225, 100, 30), gravity, .01f, 1f);
+        //GUI.TextField(new Rect(150, 225, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
+        //mortal = GUI.Toggle(new Rect(150, 250, 200, 20), mortal, "mortality: " + mortal.ToString());
     }
 
     private void Damage()

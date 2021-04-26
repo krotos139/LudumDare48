@@ -23,7 +23,7 @@ public class WaterManager : MonoBehaviour
     private float prevTime = 0.0f;
 
     float time = 0.0f;
-    public int speed = 2;
+    public int speed = 3;
 
     public float waterVolume;
 
@@ -71,7 +71,7 @@ public class WaterManager : MonoBehaviour
 
         syncLevel();
         time = 0.0f;
-        speed = 2;
+        speed = 3;
         timePassed = 0.0f;
         prevTime = Time.time;
     }
@@ -207,9 +207,9 @@ public class WaterManager : MonoBehaviour
 
     void OnGUI()
     {
-        waterGrid.vyazkost = (int)GUI.HorizontalSlider(new Rect(25, 275, 100, 30), waterGrid.vyazkost, 0, 100);
-        GUI.TextField(new Rect(150, 275, 200, 20), "voda vyazkost: " + waterGrid.vyazkost.ToString("00"));
-        speed = (int)GUI.HorizontalSlider(new Rect(25, 325, 100, 30), speed, 2, 10);
-        GUI.TextField(new Rect(150, 325, 200, 20), "voda skorost: " + speed.ToString("00"));
+        //waterGrid.vyazkost = (int)GUI.HorizontalSlider(new Rect(25, 275, 100, 30), waterGrid.vyazkost, 0, 100);
+        //GUI.TextField(new Rect(150, 275, 200, 20), "voda vyazkost: " + waterGrid.vyazkost.ToString("00"));
+        //speed = (int)GUI.HorizontalSlider(new Rect(25, 325, 100, 30), speed, 2, 10);
+        //GUI.TextField(new Rect(150, 325, 200, 20), "voda skorost: " + speed.ToString("00"));
     }
 }

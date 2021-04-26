@@ -17,7 +17,6 @@ public class GameStartStop : MonoBehaviour
     public Button startButton;
     public Button creditsButton;
     public Button quitButton;
-    
 
     public void GameStart()
     {

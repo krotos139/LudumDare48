@@ -599,7 +599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32dbbace6bf0d1c45a71dc4bdcc0ef0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameStartStop: {fileID: 0}
+  gameStartStop: {fileID: 1019717481}
   btn_image: {fileID: 1218977675}
   on_hover: {fileID: 721465954}
 --- !u!114 &721465950
@@ -1101,6 +1101,7 @@ MonoBehaviour:
   startButton: {fileID: 1375070562}
   creditsButton: {fileID: 721465950}
   quitButton: {fileID: 1298451042}
+  buttonsEnabled: 0
 --- !u!4 &1019717482
 Transform:
   m_ObjectHideFlags: 0
@@ -1882,7 +1883,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32dbbace6bf0d1c45a71dc4bdcc0ef0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameStartStop: {fileID: 0}
+  gameStartStop: {fileID: 1019717481}
   btn_image: {fileID: 1047638794}
   on_hover: {fileID: 1298451046}
 --- !u!114 &1298451042

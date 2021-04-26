@@ -50,7 +50,7 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void OnPointerEnter(PointerEventData eventData)
     {
         btn_image.enabled = true;
-        if (on_hover != null)
+        if (on_hover != null && gameStartStop != null && gameStartStop.startButton.enabled)
         {
             on_hover.Play();
         }

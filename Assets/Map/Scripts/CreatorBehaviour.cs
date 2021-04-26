@@ -375,12 +375,7 @@ public class CreatorBehaviour : MonoBehaviour
         return levelIndex + 1;
     }
 
-    Dictionary<string, Tile> tilesheet = new Dictionary<string, Tile>();
-
-    Tile[] rust_tilesheet = new Tile[16];
-    Tile[] ground_tilesheet = new Tile[16];
-    Tile[] rock_tilesheet = new Tile[16];
-    Tile[] metal_tilesheet = new Tile[16];
+    Dictionary<EnvCellType, Tile[]> tilesheet = new Dictionary<EnvCellType, Tile[]>();
 
     string getNeighTileName(EnvCellType curType, bool [] neighs)
     {
@@ -412,11 +407,13 @@ public class CreatorBehaviour : MonoBehaviour
         return answer;
     }
 
-    private void loadTileAsset()
+    private void loadTileAsset(string type, EnvCellType curType)
     {
-        string folderName = "rust_tilesheet_";
 
-        rust_tilesheet[0] = Resources.Load<Tile>(folderName + "0");
+        string folderName = type+"_tilesheet_";
+        tilesheet.Add(curType, new Tile[16]);
+
+        tilesheet[curType][0] = Resources.Load<Tile>(folderName + "0");
 
         for (int i = 1; i < 16; i++)
         {
@@ -432,7 +429,7 @@ public class CreatorBehaviour : MonoBehaviour
             if (d) tilename += "D";
             if (l) tilename += "L";
 
-            rust_tilesheet[i] = Resources.Load<Tile>(tilename);
+            tilesheet[curType][i] = Resources.Load<Tile>(tilename);
         }
     }
 
@@ -462,17 +459,16 @@ public class CreatorBehaviour : MonoBehaviour
                         }
                         break;
                     case EnvCellType.ground:
-                        levelTilemap.SetTile(currentCell, groundTile);
+                        levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.ground][cell.neighbours]);
                         break;
                     case EnvCellType.rock:
-                        levelTilemap.SetTile(currentCell, rockTile);
+                        levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rock][cell.neighbours]);
                         break;
                     case EnvCellType.metal:
-                        levelTilemap.SetTile(currentCell, metalTile);
+                        levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.metal][cell.neighbours]);
                         break;
                     case EnvCellType.rust:
-                        //levelTilemap.SetTile(currentCell, rustTile);
-                        levelTilemap.SetTile(currentCell, rust_tilesheet[cell.neighbours]);
+                        levelTilemap.SetTile(currentCell, tilesheet[EnvCellType.rust][cell.neighbours]);
                         break;
                 }
             }
@@ -622,7 +618,10 @@ public class CreatorBehaviour : MonoBehaviour
     {
         if (tiles == null)
         {
-            loadTileAsset();
+            loadTileAsset("rust", EnvCellType.rust);
+            loadTileAsset("ground", EnvCellType.ground);
+            loadTileAsset("rock", EnvCellType.rock);
+            loadTileAsset("metal", EnvCellType.metal);
 
             Random.InitState((int)System.DateTime.Now.Ticks);
 

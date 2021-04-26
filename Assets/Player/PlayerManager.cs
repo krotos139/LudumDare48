@@ -46,6 +46,11 @@ public class PlayerManager : MonoBehaviour
     private int clipIndex = 1;
     private AudioSource[] audioSources = new AudioSource[2];
 
+    public AudioClip clipsDigGround;
+    public AudioClip clipsDigRust;
+    public AudioClip clipsDigRock;
+    private AudioSource digAudioSource;
+
     public bool mortal = true;
     public bool damaged;
     public int damagedDelay = 0;
@@ -122,6 +127,8 @@ public class PlayerManager : MonoBehaviour
         clipIndex = Random.Range(0, clips.Length-1);
         mixer.SetFloat("Music", clipsVolume);
 
+        digAudioSource = gameObject.AddComponent<AudioSource>();
+        digAudioSource.outputAudioMixerGroup = mixer.FindMatchingGroups("SFX")[0];
     }
 
     private Vector2Int getPixelPosition(Vector2 curPos)
@@ -150,6 +157,28 @@ public class PlayerManager : MonoBehaviour
                 xdec = -5;
                 break;
         }
+    }
+
+    public void playSFX(EnvCellType type)
+    {
+        if (type == EnvCellType.empty || type == EnvCellType.metal)
+        {
+            return;
+        }
+        switch(type)
+        {
+            case EnvCellType.ground:
+                digAudioSource.clip = clipsDigGround;
+                break;
+            case EnvCellType.rust:
+                digAudioSource.clip = clipsDigRust;
+                break;
+            case EnvCellType.rock:
+                digAudioSource.clip = clipsDigRock;
+                break;
+            }
+        digAudioSource.loop = false;
+        digAudioSource.Play(0);
     }
 
     private void movementPixelBlock(Vector2 curPos, MovementDirection dir)

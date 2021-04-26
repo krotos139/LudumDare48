@@ -784,7 +784,7 @@ public class CreatorBehaviour : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && canInteract)
             {
                 Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
-
+                player.playSFX(curCell.getType());
                 if (!curCell.Hit())
                 {
                     int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);

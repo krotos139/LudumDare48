@@ -17,7 +17,12 @@ public class WaterManager : MonoBehaviour
     public int waterQuality;
     public int waterDelay = 0;
     private int waterCurDelay = 0;
-    float time;
+
+    public float accelTime = 30.0f;
+    private float timePassed = 0.0f;
+    private float prevTime = 0.0f;
+
+    float time = 0.0f;
     public int speed = 2;
 
     public float waterVolume;
@@ -53,6 +58,8 @@ public class WaterManager : MonoBehaviour
         syncLevel();
         time = 0.0f;
         speed = 2;
+        timePassed = 0.0f;
+        prevTime = Time.time;
     }
 
     public bool tileHasWater(int tileX, int tileY)
@@ -144,14 +151,27 @@ public class WaterManager : MonoBehaviour
         {
             syncLevel();
 
-            if (waterCurDelay == waterDelay)
+            if (waterCurDelay >= waterDelay)
             {
                 if (Random.Range(0, 100 / speed) <4)
                 {
-                    waterGrid.cells[45, 5] = WaterGrid.cellType.water;
+                    waterGrid.cells[(map.width - 1) * waterQuality / 2, 1] = WaterGrid.cellType.water;
+#if WATER_TEST
+                    for (int i = 0; i < 15; i++)
+                    {
+                        waterGrid.cells[(map.width - 1) * waterQuality / 2 - 25 + i * 2, 1] = WaterGrid.cellType.water;
+                    }
+#endif
                     waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
                 }
+#if WATER_TEST
+                for (int i = 0; i < 5; i++)
+                {
+#endif
                 waterGrid.nextStep();
+#if WATER_TEST
+            }
+#endif
                 waterCurDelay = 0;
             }
             else
@@ -161,13 +181,21 @@ public class WaterManager : MonoBehaviour
             rendedTexture();
         }
         time += 0.001f;
+        float curTime = Time.time;
+        timePassed += curTime - prevTime;
+        prevTime = curTime;
+
+        if (timePassed > accelTime)
+        {
+            if (waterDelay > 0) waterDelay--;
+        }
     }
 
     void OnGUI()
     {
-        waterGrid.vyazkost = (int)GUI.HorizontalSlider(new Rect(25, 225, 100, 30), waterGrid.vyazkost, 0, 100);
-        GUI.TextField(new Rect(150, 225, 200, 20), "voda vyazkost: " + waterGrid.vyazkost.ToString("00"));
-        speed = (int)GUI.HorizontalSlider(new Rect(25, 275, 100, 30), speed, 2, 10);
-        GUI.TextField(new Rect(150, 275, 200, 20), "voda skorost: " + speed.ToString("00"));
+        waterGrid.vyazkost = (int)GUI.HorizontalSlider(new Rect(25, 275, 100, 30), waterGrid.vyazkost, 0, 100);
+        GUI.TextField(new Rect(150, 275, 200, 20), "voda vyazkost: " + waterGrid.vyazkost.ToString("00"));
+        speed = (int)GUI.HorizontalSlider(new Rect(25, 325, 100, 30), speed, 2, 10);
+        GUI.TextField(new Rect(150, 325, 200, 20), "voda skorost: " + speed.ToString("00"));
     }
 }

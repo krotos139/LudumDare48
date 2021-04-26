@@ -79,6 +79,8 @@ public class CreatorBehaviour : MonoBehaviour
     public int levelIndex = 0;
     private int levelXSeed = 0;
 
+    public int tilePixelSize = 48;
+
     // need to merge it into one thing
 
     public List<EnvCellType[,]> levels = new List<EnvCellType[,]>();
@@ -177,17 +179,51 @@ public class CreatorBehaviour : MonoBehaviour
         }
     }
 
+    private void clearLevelTiles(ref EnvCellType[,] levelTiles)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (levelTiles[x, y] != EnvCellType.metal)
+                {
+                    levelTiles[x, y] = EnvCellType.empty;
+                }
+            }
+        }
+    }
+
     private void fillBoundaries(ref EnvCellType[,] levelTiles)
     {
         Random.InitState((int)System.DateTime.Now.Ticks);
 
-        // add metal
+        // bottom part
 
         for (int x = 0; x < width; x++)
         {
-            if (levelTiles[x, 0] == EnvCellType.empty) levelTiles[x, 0] = EnvCellType.ground;
-            if (levelTiles[x, height - 1] == EnvCellType.empty) levelTiles[x, height - 1] = EnvCellType.ground;
+            if (levelTiles[x, height - 1] != EnvCellType.metal) levelTiles[x, height - 1] = EnvCellType.ground;
         }
+
+        int endingStart = 6;
+
+        int conditionXmin = 0;
+        int conditionXmax = width - 1;
+
+        for (int y = height - endingStart; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (x < conditionXmin || x >= conditionXmax)
+                {
+                    levelTiles[x, y] = EnvCellType.metal;
+                }
+            }
+            conditionXmin += 3;
+            conditionXmax -= 3;
+        }
+        
+
+        // add metal boundaries
 
         for (int y = 0; y < height; y++)
         {
@@ -205,30 +241,41 @@ public class CreatorBehaviour : MonoBehaviour
 
         // add rust, if there are more than 3 neighbouring metal cells
 
+        int metalCellsThreshold = 0;
+
         for (int y = 0; y < height; y++)
         {
             int x = 0;
-            while (levelTiles[x, y] == EnvCellType.metal)
+            while (x < width && levelTiles[x, y] == EnvCellType.metal)
             {
                 x++;
             }
-            int metalCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
-            makeRust(ref levelTiles, x, y, metalCellsThreshold);
+            if (x < width)
+            {
+                metalCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
+                makeRust(ref levelTiles, x, y, metalCellsThreshold);
+            }
 
             x = width - 1;
-            while (levelTiles[x, y] == EnvCellType.metal)
+            while (x >= 0 && levelTiles[x, y] == EnvCellType.metal)
             {
                 x--;
             }
-            metalCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
-            makeRust(ref levelTiles, x, y, metalCellsThreshold);
+            if (x >= 0)
+            {
+                metalCellsThreshold = (int)(Mathf.Round(Random.Range(0.3f, 1.0f) * 3.0f));
+                makeRust(ref levelTiles, x, y, metalCellsThreshold);
+            }
         }
+#if WATER_TEST
+        clearLevelTiles(ref levelTiles);
+#endif
     }
 
     private void makeLevelPerlin(ref EnvCellType[,] levelTiles)
     {
         EnvCellType[] materials = new EnvCellType[] { EnvCellType.empty, EnvCellType.ground, EnvCellType.rock, EnvCellType.rust, EnvCellType.metal };
-        float[] weights = new float[] { 0.15f, 0.40f, 0.15f, 0.15f, 0.15f };
+        float[] weights = new float[] { 0.15f, 0.35f, 0.15f, 0.10f, 0.25f };
 
         // fill main area
 
@@ -304,8 +351,14 @@ public class CreatorBehaviour : MonoBehaviour
                 switch (levels[currentLevelIndex][x, y])
                 {
                     case EnvCellType.empty:
-                        //levelTilemap.SetTile(currentCell, emptyTile);
-                        levelTilemap.SetTile(currentCell, null); // just don't draw it
+                        if (y >= 5)
+                        {
+                            levelTilemap.SetTile(currentCell, emptyTile);
+                        }
+                        else
+                        {
+                            levelTilemap.SetTile(currentCell, null); // just don't draw it
+                        }
                         break;
                     case EnvCellType.ground:
                         levelTilemap.SetTile(currentCell, groundTile);
@@ -322,6 +375,23 @@ public class CreatorBehaviour : MonoBehaviour
                 }
             }
         }
+    }
+
+    public Vector2Int getTileFromPixel(Vector2Int pixel)
+    {
+        return new Vector2Int(pixel.x / tilePixelSize, pixel.y / tilePixelSize);
+    }
+
+    public bool isPixelValid(Vector2Int pix)
+    {
+        bool xcorrect = pix.x >= 0 && pix.x < width * tilePixelSize;
+        bool ycorrect = pix.y >= 0 && pix.y < tilePixelSize * height;
+        return xcorrect && ycorrect;
+    }
+
+    public EnvCellType getPixelType(Vector2Int pix)
+    {
+        return getTileType(pix.x / tilePixelSize, pix.y / tilePixelSize);
     }
 
     public Vector2 getBottomLeft()
@@ -365,6 +435,13 @@ public class CreatorBehaviour : MonoBehaviour
         return levels[curTileZone][tileX, tileY];
     }
 
+    public EnvCellType getTileType(Vector2Int tile)
+    {
+        int curTileZone = tile.y / height + levelIndex;
+
+        return levels[curTileZone][tile.x, tile.y % height];
+    }
+
     public int setTileType(int tileX, int tileY, EnvCellType someType)
     {
         int curTileZone = tileY / height + levelIndex;
@@ -385,7 +462,7 @@ public class CreatorBehaviour : MonoBehaviour
     void prepareBeginning()
     {
         // clear layer for beginning
-        for (int x = 2; x < width-2; ++x)
+        for (int x = 1; x < width-1; ++x)
         {
             for (int y = 0; y < 5; ++y)
             {
@@ -414,10 +491,10 @@ public class CreatorBehaviour : MonoBehaviour
         }
         
         int xmid = width / 2;
-        int holeWidth = width / 4;
+        int holeWidth = 3;
 
         int holeStart = 5;
-        int holeStop = 9;
+        int holeStop = 8;
 
         for (int x = xmid - holeWidth / 2; x < xmid + holeWidth / 2 + holeWidth % 2; x++)
         {

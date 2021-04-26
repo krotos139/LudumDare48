@@ -6,8 +6,9 @@ using UnityEngine.Audio;
 
 public class PlayerManager : MonoBehaviour
 {
-    private float accelForce = 0.002f;
-    private float accelDecay = 0.02f;
+    private float accelForce = 0.008f;
+    private float accelXDecay = 0.1f;
+    private float accelYDecay = 0.02f;
     private float jumpForce = 0.2f;
     private float gravity = 0.15f;
 
@@ -54,6 +55,7 @@ public class PlayerManager : MonoBehaviour
     };
 
     private Dictionary<MovementDirection, List<float>> movementBlockPointShift = new Dictionary<MovementDirection, List<float>>();
+    private Dictionary<MovementDirection, List<int>> movementPixelBlockPointShift = new Dictionary<MovementDirection, List<int>>();
 
     // Start is called before the first frame update
     void Start()
@@ -72,6 +74,11 @@ public class PlayerManager : MonoBehaviour
         movementBlockPointShift.Add(MovementDirection.Left, new List<float>()   { -0.33f, 0.35f,  -0.33f, -0.35f  });
         movementBlockPointShift.Add(MovementDirection.Top, new List<float>()    {  0.33f, -0.5f, -0.33f, -0.5f  });
         movementBlockPointShift.Add(MovementDirection.Bottom, new List<float>() {  0.33f, 0.5f,  -0.33f,  0.5f  });
+
+        movementPixelBlockPointShift.Add(MovementDirection.Right, new List<int>() { 1, 1, 1, -1 });
+        movementPixelBlockPointShift.Add(MovementDirection.Left, new List<int>() { -1, 1, -1, -1 });
+        movementPixelBlockPointShift.Add(MovementDirection.Top, new List<int>() { 1, -1, -1, -1 });
+        movementPixelBlockPointShift.Add(MovementDirection.Bottom, new List<int>() { 1, 1, -1, 1 });
 
         anim = GetComponent<Animator>();
         health = 2;
@@ -112,6 +119,143 @@ public class PlayerManager : MonoBehaviour
 
     }
 
+    private Vector2Int getPixelPosition(Vector2 curPos)
+    {
+        Vector2Int curPixelPos = new Vector2Int((int)(curPos.x * map.tilePixelSize), (int)(curPos.y * map.tilePixelSize));
+        return curPixelPos;
+    }
+
+    private void getMovementSizeShifts(MovementDirection dir, ref int xdec, ref int ydec)
+    {
+        switch (dir)
+        {
+            case MovementDirection.Bottom:
+                xdec = -5;
+                break;
+            case MovementDirection.Top:
+                xdec = -5;
+                ydec = -6;
+                break;
+            case MovementDirection.Left:
+                ydec = -6;
+                xdec = -5;
+                break;
+            case MovementDirection.Right:
+                ydec = -6;
+                xdec = -5;
+                break;
+        }
+    }
+
+    private void movementPixelBlock(Vector2 curPos, MovementDirection dir)
+    {
+        // curPos is player center
+
+        Vector2Int curPixelPos = getPixelPosition(curPos);
+
+        List<int> pointShifts = movementPixelBlockPointShift[dir];
+
+        int xdec = 0;
+        int ydec = 0;
+
+        getMovementSizeShifts(dir, ref xdec, ref ydec);
+
+        int halfXSize = map.tilePixelSize / 2 + xdec;
+        int halfYSize = map.tilePixelSize / 2 + ydec;
+
+        Vector2Int firstPixel = new Vector2Int(curPixelPos.x + pointShifts[0] * halfXSize, curPixelPos.y + pointShifts[1] * halfYSize);
+        Vector2Int secondPixel = new Vector2Int(curPixelPos.x + pointShifts[2] * halfXSize, curPixelPos.y + pointShifts[3] * halfYSize);
+
+        Vector2Int firstTile = map.getTileFromPixel(firstPixel);
+        Vector2Int secondTile = map.getTileFromPixel(secondPixel);
+
+        Vector2Int firstTileWidth = new Vector2Int(firstTile.x * map.tilePixelSize, (firstTile.x + 1) * map.tilePixelSize);
+        Vector2Int firstTileHeight = new Vector2Int(firstTile.y * map.tilePixelSize, (firstTile.y + 1) * map.tilePixelSize);
+
+        Debug.Log($"movementPixelBlock: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
+
+        if (map.isPixelValid(firstPixel))
+        {
+            if (map.getTileType(firstTile) != EnvCellType.empty)
+            {
+                Debug.Log($"movementPixelBlock: tile ({firstTile.x}, {firstTile.y}) - blocker");
+                if (dir == MovementDirection.Left || dir == MovementDirection.Right)
+                {
+                    accelX = 0;
+                }
+                else
+                {
+                    accelY = 0;
+                }
+            }
+        }
+
+        if (map.isPixelValid(secondPixel))
+        {
+            if (map.getTileType(secondTile) != EnvCellType.empty)
+            {
+                Debug.Log($"movementPixelBlock: tile ({secondTile.x}, {secondTile.y}) - blocker");
+                if (dir == MovementDirection.Left || dir == MovementDirection.Right)
+                {
+                    accelX = 0;
+                }
+                else
+                {
+                    accelY = 0;
+                }
+            }
+        }
+    }
+
+    private bool isPixelGrounded(Vector2 curPos)
+    {
+        Vector2Int curPixelPos = getPixelPosition(curPos);
+
+        List<int> pointShifts = movementPixelBlockPointShift[MovementDirection.Bottom];
+
+        int halfSize = map.tilePixelSize / 2;
+
+        int xdec = 0;
+        int ydec = 0;
+
+        getMovementSizeShifts(MovementDirection.Bottom, ref xdec, ref ydec);
+
+        int halfXSize = map.tilePixelSize / 2 + xdec * 2;
+        int halfYSize = map.tilePixelSize / 2;
+
+        Vector2Int firstPixel = new Vector2Int(curPixelPos.x + pointShifts[0] * halfXSize, curPixelPos.y + pointShifts[1] * halfYSize + 1);
+        Vector2Int secondPixel = new Vector2Int(curPixelPos.x + pointShifts[2] * halfXSize, curPixelPos.y + pointShifts[3] * halfYSize + 1);
+
+        Vector2Int firstTile = map.getTileFromPixel(firstPixel);
+        Vector2Int secondTile = map.getTileFromPixel(secondPixel);
+
+        bool grounded = isGrounded(curPos);
+
+        bool answer = false;
+
+        Debug.Log($"isPixelGrounded: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
+
+        if (map.isPixelValid(firstPixel))
+        {
+            if (map.getTileType(firstTile) != EnvCellType.empty)
+            {
+                Debug.Log($"isPixelGrounded: tile ({firstTile.x}, {firstTile.y}) - ground");
+                answer = true;
+            }
+        }
+
+        if (map.isPixelValid(secondPixel))
+        {
+            if (map.getTileType(secondTile) != EnvCellType.empty)
+            {
+                Debug.Log($"isPixelGrounded: tile ({secondTile.x}, {secondTile.y}) - ground");
+                answer = true;
+            }
+        }
+
+
+        return answer;
+    }
 
     private void movementBlock(Vector2 curPos, MovementDirection dir)
     {
@@ -122,8 +266,8 @@ public class PlayerManager : MonoBehaviour
         Vector2 firstPoint = new Vector2(curPos.x + pointShifts[0], curPos.y + pointShifts[1]);
         Vector2 secondPoint = new Vector2(curPos.x + pointShifts[2], curPos.y + pointShifts[3]);
 
-        Vector2Int iFirstPoint = new Vector2Int((int)firstPoint.x, (int)firstPoint.y);
-        Vector2Int iSecondPoint = new Vector2Int((int)secondPoint.x, (int)secondPoint.y);
+        Vector2Int iFirstPoint = new Vector2Int(Mathf.RoundToInt(firstPoint.x), Mathf.RoundToInt(firstPoint.y));
+        Vector2Int iSecondPoint = new Vector2Int(Mathf.RoundToInt(secondPoint.x), Mathf.RoundToInt(secondPoint.y));
 
         if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
         {
@@ -228,7 +372,7 @@ public class PlayerManager : MonoBehaviour
 
         Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
         relPosition.y = map.height - relPosition.y;
-        grounded = isGrounded(relPosition);
+        grounded = isPixelGrounded(relPosition);
         if (Input.GetKey(KeyCode.Escape))
         {
             Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
@@ -264,8 +408,8 @@ public class PlayerManager : MonoBehaviour
         {
             anim.SetBool("run", false);
         }
-        accelX = Mathf.Lerp(accelX, 0, accelDecay * Time.deltaTime * 100.0f);
-        accelY = Mathf.Lerp(accelY, -gravity, accelDecay * Time.deltaTime * 100.0f);
+        accelX = Mathf.Lerp(accelX, 0, accelXDecay * Time.deltaTime * 100.0f);
+        accelY = Mathf.Lerp(accelY, -gravity, accelYDecay * Time.deltaTime * 100.0f);
 
         CheckTiles();
 
@@ -354,15 +498,20 @@ public class PlayerManager : MonoBehaviour
     void CheckTiles()
     {
         Vector2 relPosition = new Vector2(x, y + accelY) - map.getZoneBottomLeft();
+        //Debug.Log($"before: {relPosition.x}, {relPosition.y}");
         relPosition.y = map.height - relPosition.y;
+
+
+        var pos = getPositionInTile();
 
         if (accelY < 0.0f)
         {
-            movementBlock(relPosition, MovementDirection.Bottom);
+            movementPixelBlock(relPosition, MovementDirection.Bottom);
         }
         else
         {
-            movementBlock(relPosition, MovementDirection.Top);
+            //Debug.Log($"after: {relPosition.x}, {relPosition.y}");
+            movementPixelBlock(relPosition, MovementDirection.Top);
         }
         
         relPosition = new Vector2(x + accelX, y) - map.getZoneBottomLeft();
@@ -370,11 +519,11 @@ public class PlayerManager : MonoBehaviour
 
         if (accelX > 0.0f)
         {
-            movementBlock(relPosition, MovementDirection.Right);
+            movementPixelBlock(relPosition, MovementDirection.Right);
         }
         else
         {
-            movementBlock(relPosition, MovementDirection.Left);
+            movementPixelBlock(relPosition, MovementDirection.Left);
         }
 
         if (map.needLevelAddition(relPosition.y + map.curZoneStart()))
@@ -400,6 +549,16 @@ public class PlayerManager : MonoBehaviour
         return relPosition;
     }
 
+    public Vector2Int getPositionInTile()
+    {
+        var v = new Vector2Int();
+
+        v.x = (int) (x - map.getZoneBottomLeft().x)*48;
+        v.y = (int) (map.height - y) * 48;
+
+        return v;
+    }
+
     public void Dig()
     {
         anim.SetTrigger("dig");
@@ -410,11 +569,13 @@ public class PlayerManager : MonoBehaviour
         //GUI.Button(new Rect(50, 50, 100, 100), "test");
         accelForce = GUI.HorizontalSlider(new Rect(25, 25, 100, 30), accelForce, .0001f, .01f);
         GUI.TextField(new Rect(150, 25, 200, 20), "uskorenie: " + accelForce.ToString("0.0000"));
-        accelDecay = GUI.HorizontalSlider(new Rect(25, 75, 100, 30), accelDecay, 0f, 1f);
-        GUI.TextField(new Rect(150, 75, 200, 20), "zatuhanie uskoreniya: " + accelDecay.ToString("0.00"));
-        jumpForce = GUI.HorizontalSlider(new Rect(25, 125, 100, 30), jumpForce, .01f, 1f);
-        GUI.TextField(new Rect(150, 125, 200, 20), "pryzhok: " + jumpForce.ToString("0.000"));
-        gravity = GUI.HorizontalSlider(new Rect(25, 175, 100, 30), gravity, .01f, 1f);
-        GUI.TextField(new Rect(150, 175, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
+        accelXDecay = GUI.HorizontalSlider(new Rect(25, 75, 100, 30), accelXDecay, 0f, 1f);
+        GUI.TextField(new Rect(150, 75, 200, 20), "zatuhanie uskoreniya: " + accelXDecay.ToString("0.00"));
+        accelYDecay = GUI.HorizontalSlider(new Rect(25, 125, 100, 30), accelYDecay, 0f, 1f);
+        GUI.TextField(new Rect(150, 125, 200, 20), "zatuhanie uskoreniya: " + accelYDecay.ToString("0.00"));
+        jumpForce = GUI.HorizontalSlider(new Rect(25, 175, 100, 30), jumpForce, .01f, 1f);
+        GUI.TextField(new Rect(150, 175, 200, 20), "pryzhok: " + jumpForce.ToString("0.000"));
+        gravity = GUI.HorizontalSlider(new Rect(25, 225, 100, 30), gravity, .01f, 1f);
+        GUI.TextField(new Rect(150, 225, 200, 20), "gravitacia: " + gravity.ToString("0.000"));
     }
 }

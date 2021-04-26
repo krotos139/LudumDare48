@@ -196,7 +196,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1878514ffcb8e4409759c219263860f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  emptyTile: {fileID: 11400000, guid: c91865088c3fb8e47abcb0794c1d2506, type: 2}
+  emptyTile: {fileID: 11400000, guid: 5d4c1acd9446f7d40bcc14dda75fc917, type: 2}
   groundTile: {fileID: 11400000, guid: fb796652e442bb348b72c5e15d2d3f70, type: 2}
   rockTile: {fileID: 11400000, guid: 0c0d3ab9bec5cf64fb7cf5a8877528e2, type: 2}
   metalTile: {fileID: 11400000, guid: 6a7f49939d859dd46a0ca10e7f73ac2d, type: 2}
@@ -217,6 +217,7 @@ MonoBehaviour:
   height: 280
   interactLength: 1.5
   levelIndex: 0
+  tilePixelSize: 48
 --- !u!4 &463557645
 Transform:
   m_ObjectHideFlags: 0
@@ -303,7 +304,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -317,10 +318,10 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 200
   field of view: 60
   orthographic: 1
-  orthographic size: 7.717081
+  orthographic size: 6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -880,7 +881,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   world: {fileID: 463557643}
   waterQuality: 4
-  waterDelay: 4
+  waterDelay: 1000
+  accelTime: 600
   waterVolume: 0
 --- !u!212 &1780290110
 SpriteRenderer:

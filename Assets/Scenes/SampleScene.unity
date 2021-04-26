@@ -562,7 +562,7 @@ MonoBehaviour:
   playerSprite: {fileID: 21300000, guid: 7474a15c35b167745af0a63ef526dfe3, type: 3}
   world: {fileID: 463557643}
   water: {fileID: 1780290109}
-  mixer: {fileID: 0}
+  mixer: {fileID: 24100000, guid: 603003ba3a0c2df4d8e2cc9c211ccd12, type: 2}
   TopToUndergroundY: 0
   UndergroundToTopY: -10
   clipsBGT:

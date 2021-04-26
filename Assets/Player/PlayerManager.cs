@@ -43,7 +43,7 @@ public class PlayerManager : MonoBehaviour
     private int clipsVolume = -20;
 
     private int flip = 0;
-    private int clipIndex = 0;
+    private int clipIndex = 1;
     private AudioSource[] audioSources = new AudioSource[2];
 
     private enum MovementDirection
@@ -220,7 +220,7 @@ public class PlayerManager : MonoBehaviour
 
         getMovementSizeShifts(MovementDirection.Bottom, ref xdec, ref ydec);
 
-        int halfXSize = map.tilePixelSize / 2 + xdec * 2;
+        int halfXSize = map.tilePixelSize / 2 + xdec;
         int halfYSize = map.tilePixelSize / 2;
 
         Vector2Int firstPixel = new Vector2Int(curPixelPos.x + pointShifts[0] * halfXSize, curPixelPos.y + pointShifts[1] * halfYSize + 1);
@@ -477,9 +477,8 @@ public class PlayerManager : MonoBehaviour
         mixer.SetFloat("BGU3", emb3 * 80.0f - 80.0f);
         mixer.SetFloat("BGU4", emb4 * 80.0f - 80.0f);
         mixer.SetFloat("BGU5", emb5 * 80.0f - 80.0f);
-        
 
-        if (!audioSources[1- clipIndex].isPlaying)
+        if (!audioSources[1 - flip].isPlaying)
         {
             audioSources[flip].clip = clips[clipIndex];
             audioSources[flip].Play(0);

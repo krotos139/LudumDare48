@@ -21,11 +21,6 @@ public class DeathHandler : MonoBehaviour
     bool isYoudiedFaded = false;
     float youdiedAlpha = 0f;
 
-    public Image wasteImage;
-    bool isWasteFaded = false;
-    float wasteAlpha = 0f;
-
-
     bool fadedOut = false;
     float fadeOutAlpha = 1f;
 
@@ -39,7 +34,6 @@ public class DeathHandler : MonoBehaviour
     {
         canvas.enabled = false;
         youdiedImage.color = new Color(117f, 171f, 134f, 0);
-        wasteImage.color = new Color(117f, 171f, 134f, 0);
     }
 
     // Update is called once per frame
@@ -52,7 +46,6 @@ public class DeathHandler : MonoBehaviour
             delay++;
             return;
         }
-
         // enable canvas
         if (!canvas.enabled) canvas.enabled = true;
 
@@ -63,7 +56,12 @@ public class DeathHandler : MonoBehaviour
             backImage.color = new Color(0f, 0f, 0f, backAlpha);
 
             if (backAlpha >= 1f) isBackFaded = true;
+
+            return;
         }
+
+        if (!fadedOut) gameStartStop.GameStop();
+
 
         // "You died" fade-in
         if (isBackFaded && !isYoudiedFaded)
@@ -74,20 +72,19 @@ public class DeathHandler : MonoBehaviour
             if (youdiedAlpha >= 1f) isYoudiedFaded = true;
         }
 
-        // "Waste biried" fade-in
-        if (isYoudiedFaded && !isWasteFaded)
-        {
-            wasteAlpha += Time.deltaTime * fadeSpeed;
-            wasteImage.color = new Color(117f, 171f, 134f, wasteAlpha);
+        //// "Waste biried" fade-in
+        //if (isYoudiedFaded && !isWasteFaded)
+        //{
+        //    wasteAlpha += Time.deltaTime * fadeSpeed;
+        //    wasteImage.color = new Color(117f, 171f, 134f, wasteAlpha);
 
-            if (wasteAlpha >= 1f)
-            {
-                isWasteFaded = true;
-                if (!fadedOut) gameStartStop.GameStop();
-            }
-        }
+        //    if (wasteAlpha >= 1f)
+        //    {
+        //        isWasteFaded = true;
+        //    }
+        //}
 
-        if (isBackFaded && isYoudiedFaded && isWasteFaded && Input.GetMouseButtonDown(0)) clicked = true;
+        if (isBackFaded && isYoudiedFaded && Input.GetMouseButtonDown(0)) clicked = true;
 
         if (clicked)
         {
@@ -95,7 +92,6 @@ public class DeathHandler : MonoBehaviour
 
             backImage.color = new Color(0f, 0f, 0f, fadeOutAlpha);
             youdiedImage.color = new Color(117f, 171f, 134f, fadeOutAlpha);
-            wasteImage.color = new Color(117f, 171f, 134f, fadeOutAlpha);
 
             if (fadeOutAlpha <= 0f) fadedOut = true;
         }

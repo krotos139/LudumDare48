@@ -22,7 +22,7 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void onCredits()
     {
-
+        gameStartStop.CreditsStart();
     }
 
     public void onQuit()
@@ -44,7 +44,7 @@ public class MainMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void OnPointerEnter(PointerEventData eventData)

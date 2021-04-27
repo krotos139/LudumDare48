@@ -44,12 +44,26 @@ public class PlayerManager : MonoBehaviour
 
     private int flip = 0;
     private int clipIndex = 1;
-    private AudioSource[] audioSources = new AudioSource[2];
+    //private AudioSource[] audioSources = new AudioSource[2];
+
+    private AudioSource bgMusic;
 
     public AudioClip clipsDigGround;
-    public AudioClip clipsDigRust;
+    public AudioClip clipsDigMetal;
     public AudioClip clipsDigRock;
+
     private AudioSource digAudioSource;
+
+    public AudioClip clipsJump1;
+    public AudioClip clipsJump2;
+
+    public AudioClip clipsBurning;
+
+    public AudioClip clipsHurt;
+    public AudioClip clipsDiy;
+
+    private AudioSource burningAudioSource;
+    private AudioSource stateAudioSource;
 
     public bool mortal = true;
     public bool damaged;
@@ -119,16 +133,30 @@ public class PlayerManager : MonoBehaviour
         }
 
         // Music
+        /*
         for (int i = 0; i < 2; i++)
         {
             audioSources[i] = gameObject.AddComponent<AudioSource>();
             audioSources[i].outputAudioMixerGroup = mixer.FindMatchingGroups("Music")[0];
         }
+        */
+
+        bgMusic = gameObject.AddComponent<AudioSource>();
+        bgMusic.outputAudioMixerGroup = mixer.FindMatchingGroups("Music")[0];
+
         clipIndex = Random.Range(0, clips.Length-1);
         mixer.SetFloat("Music", clipsVolume);
 
         digAudioSource = gameObject.AddComponent<AudioSource>();
         digAudioSource.outputAudioMixerGroup = mixer.FindMatchingGroups("SFX")[0];
+
+        stateAudioSource = gameObject.AddComponent<AudioSource>();
+        stateAudioSource.outputAudioMixerGroup = mixer.FindMatchingGroups("SFX")[0];
+
+        burningAudioSource = gameObject.AddComponent<AudioSource>();
+        burningAudioSource.outputAudioMixerGroup = mixer.FindMatchingGroups("SFX")[0];
+
+        playMenu();
     }
 
     private Vector2Int getPixelPosition(Vector2 curPos)
@@ -161,7 +189,7 @@ public class PlayerManager : MonoBehaviour
 
     public void playSFX(EnvCellType type)
     {
-        if (type == EnvCellType.empty || type == EnvCellType.metal)
+        if (type == EnvCellType.empty)
         {
             return;
         }
@@ -171,14 +199,54 @@ public class PlayerManager : MonoBehaviour
                 digAudioSource.clip = clipsDigGround;
                 break;
             case EnvCellType.rust:
-                digAudioSource.clip = clipsDigRust;
+                digAudioSource.clip = clipsDigGround;
                 break;
             case EnvCellType.rock:
                 digAudioSource.clip = clipsDigRock;
                 break;
-            }
+            case EnvCellType.metal:
+                digAudioSource.clip = clipsDigMetal;
+                break;
+        }
         digAudioSource.loop = false;
         digAudioSource.Play(0);
+    }
+
+    public void playJump()
+    {
+        int curindex = Random.Range(0, 2);
+        switch(curindex)
+        {
+            case 0:
+                stateAudioSource.clip = clipsJump1;
+                break;
+            case 1:
+                stateAudioSource.clip = clipsJump2;
+                break;
+        }
+        stateAudioSource.loop = false;
+        stateAudioSource.Play(0);
+    }
+
+    public void playHurt()
+    {
+        stateAudioSource.clip = clipsHurt;
+        stateAudioSource.loop = false;
+        stateAudioSource.Play(0);
+    }
+
+    public void playDeath()
+    {
+        stateAudioSource.clip = clipsDiy;
+        stateAudioSource.loop = false;
+        stateAudioSource.Play(0);
+    }
+
+    public void playBurning()
+    {
+        burningAudioSource.clip = clipsBurning;
+        burningAudioSource.loop = false;
+        burningAudioSource.Play(0);
     }
 
     private void movementPixelBlock(Vector2 curPos, MovementDirection dir)
@@ -346,6 +414,37 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public void playMenu()
+    {
+        if (bgMusic.clip != clips[0])
+        {
+            bgMusic.Stop();
+            bgMusic.clip = clips[0];
+            bgMusic.Play(0);
+        }
+    }
+
+    public void playGame()
+    {
+        bgMusic.Stop();
+        bgMusic.clip = clips[1];
+        bgMusic.Play(0);
+    }
+
+    public void playCredits()
+    {
+        bgMusic.Stop();
+        bgMusic.clip = clips[2];
+        bgMusic.Play(0);
+    }
+
+    public void playDeathMusic()
+    {
+        bgMusic.Stop();
+        bgMusic.clip = clips[3];
+        bgMusic.Play(0);
+    }
+
     private bool isGrounded(Vector2 curPos)
     {
         List <float> pointShifts = movementBlockPointShift[MovementDirection.Bottom];
@@ -438,6 +537,7 @@ public class PlayerManager : MonoBehaviour
             {
                 if (grounded)
                 {
+                    playJump();
                     accelY = jumpForce;
                     anim.SetInteger("accel_y", 1);
                     anim.SetBool("grounded", false);
@@ -506,11 +606,21 @@ public class PlayerManager : MonoBehaviour
         {
             if (water.tileHasWater((int)pos.x, (int)pos.y) && !damaged)
             {
+                if (!isDead)
+                {
+                    playBurning();
+                }
+
                 if (health == 0)
                 {
                     anim.SetTrigger("death");
                     if (mortal)
                     {
+                        if (!isDead)
+                        {
+                            playDeathMusic();
+                            playDeath();
+                        }
                         isDead = true;
                     }
                     damaged = true;
@@ -518,6 +628,7 @@ public class PlayerManager : MonoBehaviour
                 }
                 if (health == 1)
                 {
+                    playHurt();
                     health = 0;
                     anim.SetInteger("health", health);
                     anim.SetTrigger("health_0");
@@ -527,6 +638,7 @@ public class PlayerManager : MonoBehaviour
                 }
                 if (health == 2)
                     {
+                    playHurt();
                     health = 1;
                     anim.SetInteger("health", health);
                     anim.SetTrigger("health_1");
@@ -566,6 +678,7 @@ public class PlayerManager : MonoBehaviour
         mixer.SetFloat("BGU4", emb4 * 80.0f - 80.0f);
         mixer.SetFloat("BGU5", emb5 * 80.0f - 80.0f);
 
+        /*
         if (!audioSources[1 - flip].isPlaying)
         {
             audioSources[flip].clip = clips[clipIndex];
@@ -578,6 +691,7 @@ public class PlayerManager : MonoBehaviour
                 clipIndex = 0;
             }
         }
+        */
 
         if (damaged)
         {

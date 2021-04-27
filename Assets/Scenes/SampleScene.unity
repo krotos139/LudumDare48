@@ -1002,16 +1002,18 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 4d160776604f4064b9ded318355f978f, type: 3}
   - {fileID: 8300000, guid: bdec5df79c73bc4408d8b29dc9dee9c6, type: 3}
   clips:
-  - {fileID: 8300000, guid: 4b56876a4d74b46499caf5c4d6178e52, type: 3}
-  - {fileID: 8300000, guid: 2db87477ac1758544bbfe1132bf6e169, type: 3}
-  - {fileID: 8300000, guid: 5cab9709fd4218741b7ef843293bf071, type: 3}
-  - {fileID: 8300000, guid: 3664a1edaf4b4e34182ab0f6604d6092, type: 3}
-  - {fileID: 8300000, guid: c1a4a078cbbc797459b97bccc04e9168, type: 3}
-  - {fileID: 8300000, guid: 54a1ec5700cc3de4d9dbcdcd9266b386, type: 3}
-  - {fileID: 8300000, guid: 8d2215c96bf40514b9bfc774da802390, type: 3}
+  - {fileID: 8300000, guid: 98ef390afcc91174ca9ba725c70239d8, type: 3}
+  - {fileID: 8300000, guid: 89e6dae97fabdf24da85352d314f7f6b, type: 3}
+  - {fileID: 8300000, guid: 26d89c4c58bc615479fcd3881a32a20c, type: 3}
+  - {fileID: 8300000, guid: e10527454b1f9944ab285290125f3536, type: 3}
   clipsDigGround: {fileID: 8300000, guid: 611d66578abe32847bd8d660b1eb9871, type: 3}
-  clipsDigRust: {fileID: 8300000, guid: e8064373782812b45b43916e1185af6d, type: 3}
+  clipsDigMetal: {fileID: 8300000, guid: 8dd623350ec943d42be9654d14e7408b, type: 3}
   clipsDigRock: {fileID: 8300000, guid: f460ea096f246ad4c8be85e1082419c1, type: 3}
+  clipsJump1: {fileID: 8300000, guid: 4242ab7e25eca9c469088eb267231401, type: 3}
+  clipsJump2: {fileID: 8300000, guid: e4117da64fd3db64db5f46c54f9a95ce, type: 3}
+  clipsBurning: {fileID: 8300000, guid: 3e46933bf9385844cb3a5831ea20dc79, type: 3}
+  clipsHurt: {fileID: 8300000, guid: 42be5d87bbac55b45a60ddbc0875346f, type: 3}
+  clipsDiy: {fileID: 8300000, guid: 3153bd5573b172c4b871c95dead2dc48, type: 3}
   mortal: 1
   damaged: 0
   damagedDelay: 0
@@ -3078,6 +3080,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 376368c7b5e760c42b7a312cdc20af9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 957891260}
   world: {fileID: 463557643}
   waterQuality: 4
   waterDelay: 1

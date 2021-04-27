@@ -33,6 +33,7 @@ public class WaterManager : MonoBehaviour
     public void startGame()
     {
         started = true;
+        
     }
 
     public void stopGame()

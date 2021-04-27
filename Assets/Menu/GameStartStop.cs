@@ -24,6 +24,7 @@ public class GameStartStop : MonoBehaviour
         camerab.startGame();
         water.startGame();
         player.isDead = false;
+        player.playGame();
     }
 
     public void GameStop()
@@ -31,6 +32,7 @@ public class GameStartStop : MonoBehaviour
         fadein = true;
         camerab.stopGame();
         water.stopGame();
+        player.playMenu();
     }
 
     public void GamePause()
@@ -39,6 +41,7 @@ public class GameStartStop : MonoBehaviour
         fadein = true;
         camerab.stopGame();
         water.stopGame();
+        player.playMenu();
     }
 
     // Start is called before the first frame update

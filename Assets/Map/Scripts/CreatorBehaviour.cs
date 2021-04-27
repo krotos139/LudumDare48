@@ -769,7 +769,7 @@ public class CreatorBehaviour : MonoBehaviour
             EnvCellType cellType = curCell.getType();
             int cellDurability = curCell.getDurability();
 
-            if (cellType != EnvCellType.metal && cellType != EnvCellType.empty)
+            if (cellType != EnvCellType.empty)
             {
                 if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
                 {
@@ -778,25 +778,25 @@ public class CreatorBehaviour : MonoBehaviour
                     canInteract = true;                    
                 }
             }
-            else
-            {
-                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-            }
 
             if (Input.GetMouseButtonDown(0) && canInteract)
             {
                 Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
                 player.playSFX(curCell.getType());
-                if (!curCell.Hit())
+                if (cellType != EnvCellType.metal)
                 {
-                    int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);
-                    //showLevel(curCell.getZone());
-                    showLevelTile(tileInds.x, tileInds.y);
-                    showDecalEmpty(tileInds.x, tileInds.y);
-                    showGarbageEmpty(tileInds.x, tileInds.y);
-                } else
-                {
-                    showDecal(tileInds.x, tileInds.y, ref curCell);
+                    if (!curCell.Hit())
+                    {
+                        int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);
+                        //showLevel(curCell.getZone());
+                        showLevelTile(tileInds.x, tileInds.y);
+                        showDecalEmpty(tileInds.x, tileInds.y);
+                        showGarbageEmpty(tileInds.x, tileInds.y);
+                    }
+                    else
+                    {
+                        showDecal(tileInds.x, tileInds.y, ref curCell);
+                    }
                 }
                 player.Dig();
             }

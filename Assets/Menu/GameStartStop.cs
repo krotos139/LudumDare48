@@ -53,12 +53,14 @@ public class GameStartStop : MonoBehaviour
     {
         canvasCredits.enabled = true;
         fadeinCredits = true;
+        player.playCredits();
     }
 
     public void CreditsStop()
     {
         fadeinCredits = false;
         fadeoutCredits = true;
+        player.playMenu();
     }
 
     // Start is called before the first frame update

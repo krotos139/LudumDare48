@@ -52,7 +52,6 @@ public class DeathHandler : MonoBehaviour
             delay++;
             return;
         }
-
         // enable canvas
         if (!canvas.enabled) canvas.enabled = true;
 
@@ -63,7 +62,12 @@ public class DeathHandler : MonoBehaviour
             backImage.color = new Color(0f, 0f, 0f, backAlpha);
 
             if (backAlpha >= 1f) isBackFaded = true;
+
+            return;
         }
+
+        if (!fadedOut) gameStartStop.GameStop();
+
 
         // "You died" fade-in
         if (isBackFaded && !isYoudiedFaded)
@@ -83,7 +87,6 @@ public class DeathHandler : MonoBehaviour
             if (wasteAlpha >= 1f)
             {
                 isWasteFaded = true;
-                if (!fadedOut) gameStartStop.GameStop();
             }
         }
 

@@ -18,6 +18,11 @@ public class GameStartStop : MonoBehaviour
     public Button creditsButton;
     public Button quitButton;
 
+    public CanvasGroup canvasgCredits;
+    public Canvas canvasCredits;
+    private bool fadeoutCredits = false;
+    private bool fadeinCredits = false;
+
     public void GameStart()
     {
         fadeout = true;
@@ -41,10 +46,26 @@ public class GameStartStop : MonoBehaviour
         water.stopGame();
     }
 
+    public void CreditsStart()
+    {
+        canvasCredits.enabled = true;
+        fadeinCredits = true;
+    }
+
+    public void CreditsStop()
+    {
+        fadeinCredits = false;
+        fadeoutCredits = true;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        if (canvasCredits != null)
+        {
+             canvasCredits.enabled = false;
+            canvasgCredits.alpha = 0.0f;
+        }
     }
 
     public void setButtonsEnabled(bool value)
@@ -78,6 +99,32 @@ public class GameStartStop : MonoBehaviour
                 fadein = false;
                 setButtonsEnabled(true);
             }
+        }
+        if (canvasgCredits != null) {
+            if (fadeoutCredits)
+            {
+                canvasgCredits.alpha = canvasgCredits.alpha - 1.0f*Time.deltaTime;
+                if (canvasgCredits.alpha <= 0.0f)
+                {
+                    canvasCredits.enabled = false;
+                    fadeoutCredits = false;
+                   // setButtonsEnabled(false);
+                }
+            }
+            if (fadeinCredits)
+            {
+                canvasgCredits.alpha = canvasgCredits.alpha + 1.0f * Time.deltaTime;
+                if (canvasgCredits.alpha >= 1.0f)
+                {
+                    canvasCredits.enabled = true;
+                    fadeinCredits = false;
+                    //setButtonsEnabled(true);
+                }
+            }
+        }
+        if (canvasCredits.enabled && Input.GetMouseButtonDown(0))
+        {
+            CreditsStop();
         }
     }
 }

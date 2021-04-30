@@ -37,7 +37,6 @@ public class GameStartStop : MonoBehaviour
         fadein = true;
         camerab.stopGame();
         water.stopGame();
-        player.playMenu();
     }
 
     public void GamePause()
@@ -83,7 +82,7 @@ public class GameStartStop : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.Escape) && !fadein)
+        if (Input.GetKey(KeyCode.Escape) && !fadein && !player.isDead)
         {
             GamePause();
         }

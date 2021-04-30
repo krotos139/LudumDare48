@@ -420,6 +420,7 @@ public class PlayerManager : MonoBehaviour
         {
             bgMusic.Stop();
             bgMusic.clip = clips[0];
+            bgMusic.loop = true;
             bgMusic.Play(0);
         }
     }
@@ -428,6 +429,7 @@ public class PlayerManager : MonoBehaviour
     {
         bgMusic.Stop();
         bgMusic.clip = clips[1];
+        bgMusic.loop = true;
         bgMusic.Play(0);
     }
 
@@ -435,6 +437,7 @@ public class PlayerManager : MonoBehaviour
     {
         bgMusic.Stop();
         bgMusic.clip = clips[2];
+        bgMusic.loop = true;
         bgMusic.Play(0);
     }
 
@@ -442,6 +445,7 @@ public class PlayerManager : MonoBehaviour
     {
         bgMusic.Stop();
         bgMusic.clip = clips[3];
+        bgMusic.loop = true;
         bgMusic.Play(0);
     }
 

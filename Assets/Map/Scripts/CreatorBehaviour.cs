@@ -233,7 +233,7 @@ public class CreatorBehaviour : MonoBehaviour
             if (levelTiles[x, height - 1] != EnvCellType.metal) levelTiles[x, height - 1] = EnvCellType.ground;
         }
 
-        int endingStart = 9;
+        int endingStart = 15;
 
         int conditionXmin = 0;
         int conditionXmax = width - 1;
@@ -754,66 +754,55 @@ public class CreatorBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        bool canInteract = false;
-        Vector2 playerPosition = player.getPosition();
-        Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 zoneBottom = getZoneBottomLeft();
-        Vector3 relPosition = cursorPosition - new Vector3(zoneBottom.x, zoneBottom.y, 0.0f);
-        // relPosition.y += height * (levelIndex);
-        relPosition.y = height - relPosition.y;
-        Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x - 0.5f), (int)Mathf.Round(relPosition.y - 0.5f));
-
-        if (isValidTileIndices(tileInds.x, tileInds.y))
+        if (!player.isDead)
         {
-            InteractiveCell curCell = getCell(tileInds.x, tileInds.y);
-            EnvCellType cellType = curCell.getType();
-            int cellDurability = curCell.getDurability();
+            bool canInteract = false;
+            Vector2 playerPosition = player.getPosition();
+            Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 zoneBottom = getZoneBottomLeft();
+            Vector3 relPosition = cursorPosition - new Vector3(zoneBottom.x, zoneBottom.y, 0.0f);
+            // relPosition.y += height * (levelIndex);
+            relPosition.y = height - relPosition.y;
+            Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x - 0.5f), (int)Mathf.Round(relPosition.y - 0.5f));
 
-            if (cellType != EnvCellType.empty)
+            if (isValidTileIndices(tileInds.x, tileInds.y))
             {
-                if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
-                {
-                    // only detroying 
+                InteractiveCell curCell = getCell(tileInds.x, tileInds.y);
+                EnvCellType cellType = curCell.getType();
+                int cellDurability = curCell.getDurability();
 
-                    canInteract = true;                    
-                }
-            }
-
-            if (Input.GetMouseButtonDown(0) && canInteract)
-            {
-                Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
-                player.playSFX(curCell.getType());
-                if (cellType != EnvCellType.metal)
+                if (cellType != EnvCellType.empty)
                 {
-                    if (!curCell.Hit())
+                    if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
                     {
-                        int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);
-                        //showLevel(curCell.getZone());
-                        showLevelTile(tileInds.x, tileInds.y);
-                        showDecalEmpty(tileInds.x, tileInds.y);
-                        showGarbageEmpty(tileInds.x, tileInds.y);
-                    }
-                    else
-                    {
-                        showDecal(tileInds.x, tileInds.y, ref curCell);
+                        // only detroying 
+
+                        canInteract = true;
                     }
                 }
-                player.Dig();
+
+                if (Input.GetMouseButtonDown(0) && canInteract)
+                {
+                    Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
+                    player.playSFX(curCell.getType());
+                    if (cellType != EnvCellType.metal)
+                    {
+                        if (!curCell.Hit())
+                        {
+                            int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.empty);
+                            //showLevel(curCell.getZone());
+                            showLevelTile(tileInds.x, tileInds.y);
+                            showDecalEmpty(tileInds.x, tileInds.y);
+                            showGarbageEmpty(tileInds.x, tileInds.y);
+                        }
+                        else
+                        {
+                            showDecal(tileInds.x, tileInds.y, ref curCell);
+                        }
+                    }
+                    player.Dig();
+                }
             }
-
-            /*
-
-            if (Input.GetMouseButtonDown(1) && canInteract)
-            {
-
-                Debug.LogWarning($"adding tile : ({tileInds.x}, {tileInds.y})");
-
-                int tileZone = setTileType(tileInds.x, tileInds.y, EnvCellType.ground);
-                showLevel(tileZone);
-                player.Dig();
-            }
-
-            */
         }
     }
 }

@@ -96,7 +96,11 @@ public class DeathHandler : MonoBehaviour
             if (fadeOutAlpha <= 0f) fadedOut = true;
         }
 
-        if (fadedOut && clicked) SceneManager.LoadScene("SampleScene");
+        if (fadedOut && clicked)
+        {
+            playerManager.playMenu();
+            SceneManager.LoadScene("SampleScene");
+        }
     }
 
 }

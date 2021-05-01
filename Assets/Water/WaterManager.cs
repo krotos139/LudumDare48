@@ -23,6 +23,8 @@ public class WaterManager : MonoBehaviour
     private float prevTime = 0.0f;
 
     float time = 0.0f;
+    float waterTime = 1.0f / 60.0f; // 60 fps limit
+    float waterTimePassed = 0.0f;
     public int speed = 3;
 
     public float waterVolume;
@@ -162,38 +164,44 @@ public class WaterManager : MonoBehaviour
 
     void Update()
     {
-        if (map != null && started)
+        // 60 fps limit
+        waterTimePassed += Time.deltaTime;
+        if (waterTimePassed >= waterTime)
         {
-            syncLevel();
-
-            if (waterCurDelay >= waterDelay)
+            waterTimePassed = 0.0f;
+            if (map != null && started)
             {
-                if (Random.Range(0, 100 / speed) <4)
+                syncLevel();
+
+                if (waterCurDelay >= waterDelay)
                 {
-                    waterGrid.cells[(map.width - 1) * waterQuality / 2, 1] = WaterGrid.cellType.water;
+                    if (Random.Range(0, 100 / speed) < 4)
+                    {
+                        waterGrid.cells[(map.width - 1) * waterQuality / 2, 1] = WaterGrid.cellType.water;
 #if WATER_TEST
                     for (int i = 0; i < 15; i++)
                     {
                         waterGrid.cells[(map.width - 1) * waterQuality / 2 - 25 + i * 2, 1] = WaterGrid.cellType.water;
                     }
 #endif
-                    waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
-                }
+                        waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
+                    }
 #if WATER_TEST
                 for (int i = 0; i < 5; i++)
                 {
 #endif
-                waterGrid.nextStep();
+                    waterGrid.nextStep();
 #if WATER_TEST
             }
 #endif
-                waterCurDelay = 0;
+                    waterCurDelay = 0;
+                }
+                else
+                {
+                    waterCurDelay++;
+                }
+                rendedTexture();
             }
-            else
-            {
-                waterCurDelay++;
-            }
-            rendedTexture();
         }
         time += 0.001f;
         float curTime = Time.time;

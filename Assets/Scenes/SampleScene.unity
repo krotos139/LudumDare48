@@ -303,9 +303,8 @@ MonoBehaviour:
   gbTilemap: {fileID: 1452866887}
   player: {fileID: 957891260}
   width: 24
-  height: 280
+  height: 270
   interactLength: 1.5
-  levelIndex: 0
   tilePixelSize: 48
 --- !u!4 &463557645
 Transform:

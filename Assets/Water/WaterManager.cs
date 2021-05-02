@@ -103,7 +103,7 @@ public class WaterManager : MonoBehaviour
                 {
                     for (int j = y * waterQuality; j < (y + 1) * waterQuality; j++)
                     {
-                        switch (map.tiles[x, y])
+                        switch (map.level[y][x].getType())
                         {
                             case EnvCellType.empty:
                                 if (waterGrid.cells[i, j] != WaterGrid.cellType.water)

@@ -739,7 +739,7 @@ public class PlayerManager : MonoBehaviour
 
         if (map.needLevelAddition(relPosition.y + map.curZoneStart()))
         {
-            map.addNewLevel();
+            map.addNewLineOfLevel();
         }
 
         /*
@@ -750,7 +750,7 @@ public class PlayerManager : MonoBehaviour
         }
 
         */
-        
+
     }
 
     public Vector2 getPosition()

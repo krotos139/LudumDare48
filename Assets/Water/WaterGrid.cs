@@ -22,6 +22,12 @@ public class WaterGrid : MonoBehaviour
     public cellType[,] cells;
 
     public int vyazkost = 3;
+    private int depth = 0;
+
+    public int GetDepth()
+    {
+        return depth;
+    }
 
     public class Coords
     {
@@ -182,6 +188,11 @@ public class WaterGrid : MonoBehaviour
                 {
                     cells[cellToMove.x, cellToMove.y] = cellType.empty;
                     cells[emptyPlace.x, emptyPlace.y] = cellType.water;
+
+                    if (emptyPlace.y > depth)
+                    {
+                        depth = emptyPlace.y;
+                    }
                 }
             }
         }

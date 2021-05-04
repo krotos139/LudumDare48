@@ -119,6 +119,7 @@ public class PlayerManager : MonoBehaviour
     public int damagedDelay = 0;
     public bool isDead = false;
 
+    public int depthAccelDifference = 10;
     TimeWatcher jumpTimer;
 
     private enum MovementDirection
@@ -587,6 +588,21 @@ public class PlayerManager : MonoBehaviour
                 damaged = false;
             }
         }
+
+        // if player is playing well, increase water speed for him
+
+        Vector2Int ptile = getPlayerCenterTile();
+        int depth = water.GetDepth();
+
+        if (ptile.y > depth)
+        {
+            int mult = (ptile.y / depthAccelDifference) - (depth / depthAccelDifference);
+            if (mult > 0 && mult != water.GetWaterStepsPerUpdate())
+            {
+                Debug.LogWarning($"Increase water speed: {mult}");
+                water.SetWaterStepsPerUpdate(mult);
+            }
+        }
     }
 
     Vector2Int[] indShifts = new Vector2Int[8] {
@@ -737,14 +753,13 @@ public class PlayerManager : MonoBehaviour
         return relPosition;
     }
 
-    public Vector2Int getPositionInTile()
+    public Vector2Int getPlayerCenterTile()
     {
-        var v = new Vector2Int();
-
-        v.x = (int) ((x - map.getZoneBottomLeft().x) * 48);
-        v.y = (int) ((map.height - y) * 48);
-
-        return v;
+        Vector2 pos = new Vector2(x, y);
+        Vector2 relpos = pos - map.getZoneBottomLeft();
+        relpos.y = map.height - relpos.y;
+        Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relpos.x - 0.5f), (int)Mathf.Round(relpos.y - 0.5f));
+        return tileInds;
     }
 
     public void Dig()

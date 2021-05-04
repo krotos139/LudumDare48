@@ -30,7 +30,12 @@ public class WaterManager : MonoBehaviour
     public float waterVolume;
 
     private bool started = false;
+    private int waterStepsPerUpdate = 1;
 
+    public int GetDepth()
+    {
+        return waterGrid.GetDepth() / waterQuality;
+    }
 
     public void startGame()
     {
@@ -160,6 +165,18 @@ public class WaterManager : MonoBehaviour
         tex.SetPixelData(table, 0);
         tex.Apply();
     }
+
+    public void SetWaterStepsPerUpdate(int value)
+    {
+        waterStepsPerUpdate = value;
+    }
+
+    public int GetWaterStepsPerUpdate()
+    {
+        return waterStepsPerUpdate;
+    }
+
+
     // Update is called once per frame
 
     void Update()
@@ -175,25 +192,21 @@ public class WaterManager : MonoBehaviour
 
                 if (waterCurDelay >= waterDelay)
                 {
-                    if (Random.Range(0, 100 / speed) < 4)
-                    {
-                        waterGrid.cells[(map.width - 1) * waterQuality / 2, 1] = WaterGrid.cellType.water;
+                    for (int i = 0; i < waterStepsPerUpdate; i++)
+                    { 
+                        if (Random.Range(0, 100 / speed) < 4)
+                        {
+                            waterGrid.cells[(map.width - 1) * waterQuality / 2, 1] = WaterGrid.cellType.water;
 #if WATER_TEST
-                    for (int i = 0; i < 15; i++)
-                    {
-                        waterGrid.cells[(map.width - 1) * waterQuality / 2 - 25 + i * 2, 1] = WaterGrid.cellType.water;
+                        for (int i = 0; i < 15; i++)
+                        {
+                            waterGrid.cells[(map.width - 1) * waterQuality / 2 - 25 + i * 2, 1] = WaterGrid.cellType.water;
+                        }
+#endif
+                            waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
+                        }
+                        waterGrid.nextStep();
                     }
-#endif
-                        waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
-                    }
-#if WATER_TEST
-                for (int i = 0; i < 5; i++)
-                {
-#endif
-                    waterGrid.nextStep();
-#if WATER_TEST
-            }
-#endif
                     waterCurDelay = 0;
                 }
                 else

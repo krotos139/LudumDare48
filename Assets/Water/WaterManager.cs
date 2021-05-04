@@ -37,6 +37,11 @@ public class WaterManager : MonoBehaviour
         return waterGrid.GetDepth() / waterQuality;
     }
 
+    public bool isPlaying()
+    {
+        return started;
+    }
+
     public void startGame()
     {
         started = true;

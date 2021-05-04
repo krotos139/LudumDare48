@@ -352,6 +352,7 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
+        if (!water.isPlaying()) return;
         /*
         if (Input.GetKeyDown(KeyCode.F))
         {

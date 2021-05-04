@@ -269,11 +269,11 @@ public class CreatorBehaviour : MonoBehaviour
     private void makeLevelPerlin(int yStart, int yEnd)
     {
         EnvCellType[] materials = new EnvCellType[] { EnvCellType.empty, EnvCellType.ground, EnvCellType.rock, EnvCellType.rust, EnvCellType.metal };
-        float[] weights = new float[] { 0.15f, 0.35f, 0.15f, 0.10f, 0.25f };
+        float[] weights = new float[] { 0.2f, 0.25f, 0.15f, 0.10f, 0.30f };
 
         // fill main area
 
-        fillLevelByNoise(yStart, yEnd, materials, weights, 12.0f, 12.0f * (height / width), 12.0f * levelXSeed, 0);
+        fillLevelByNoise(yStart, yEnd, materials, weights, 5.0f, 5.0f * (height / width), 5.0f * levelXSeed, 0);
 
         // fill left and right boundaries
 

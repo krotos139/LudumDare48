@@ -4,6 +4,49 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Audio;
 
+public class TimeWatcher
+{
+    private float prevTime = 0.0f;
+    private float timeLimit = 1.0f; // 1 second
+
+    public TimeWatcher(float _timeLimit)
+    {
+        timeLimit = _timeLimit;
+        prevTime = 0.0f;
+    }
+
+    public void SetLimit(float _timeLimit)
+    {
+        timeLimit = _timeLimit;
+    }
+
+    public bool Allowed()
+    {
+        float curTime = Time.time;
+        float dt = curTime - prevTime;
+        return dt > timeLimit;
+    }
+
+    public void Reset()
+    {
+        prevTime = Time.time;
+    }
+}
+
+public class TimeManager
+{
+    static Dictionary<string, TimeWatcher> timers = new Dictionary<string, TimeWatcher>();
+
+    public static TimeWatcher GetTimer(string name)
+    {
+        if (!timers.ContainsKey(name))
+        {
+            timers[name] = new TimeWatcher(1.0f);
+        }
+        return timers[name];
+    }
+}
+
 public class PlayerManager : MonoBehaviour
 {
     private float x;
@@ -76,6 +119,8 @@ public class PlayerManager : MonoBehaviour
     public int damagedDelay = 0;
     public bool isDead = false;
 
+    TimeWatcher jumpTimer;
+
     private enum MovementDirection
     {
         Right,
@@ -97,7 +142,10 @@ public class PlayerManager : MonoBehaviour
 
         velx = 0.0f;
         vely = 0.0f;
+
         jumpVel = Mathf.Sqrt(2.0f * (-gravity) * gravityScale * jumpHeight);
+        jumpTimer = TimeManager.GetTimer("jump0");
+        jumpTimer.SetLimit(0.5f);
 
         map = world.GetComponent<CreatorBehaviour>();
 
@@ -216,18 +264,22 @@ public class PlayerManager : MonoBehaviour
 
     public void playJump()
     {
-        int curindex = Random.Range(0, 2);
-        switch(curindex)
+        if (jumpTimer.Allowed())
         {
-            case 0:
-                stateAudioSource.clip = clipsJump1;
-                break;
-            case 1:
-                stateAudioSource.clip = clipsJump2;
-                break;
+            jumpTimer.Reset();
+            int curindex = Random.Range(0, 50) > 25 ? 1 : 0;
+            switch (curindex)
+            {
+                case 0:
+                    stateAudioSource.clip = clipsJump1;
+                    break;
+                case 1:
+                    stateAudioSource.clip = clipsJump2;
+                    break;
+            }
+            stateAudioSource.loop = false;
+            stateAudioSource.Play(0);
         }
-        stateAudioSource.loop = false;
-        stateAudioSource.Play(0);
     }
 
     public void playHurt()

@@ -6,16 +6,22 @@ using UnityEngine.Audio;
 
 public class PlayerManager : MonoBehaviour
 {
-    private float accelForce = 0.008f;
-    private float accelXDecay = 0.1f;
-    private float accelYDecay = 0.02f;
-    private float jumpForce = 0.2f;
-    private float gravity = 0.29f;
-
     private float x;
     private float y;
+
     private float accelX;
     private float accelY;
+
+    private float velx;
+    private float vely;
+
+    private float gravity = -9.8f;
+    private float gravityScale = 3.0f;
+
+    private float jumpVel = 0.0f;
+    private float jumpHeight = 2.1f;
+    private float runVel = 5.0f;
+    private float fallMaxVel = -20.0f;
 
     private int health = 2;
     private bool right = true;
@@ -78,31 +84,27 @@ public class PlayerManager : MonoBehaviour
         Bottom
     };
 
-    private Dictionary<MovementDirection, List<float>> movementBlockPointShift = new Dictionary<MovementDirection, List<float>>();
-    private Dictionary<MovementDirection, List<int>> movementPixelBlockPointShift = new Dictionary<MovementDirection, List<int>>();
-
     // Start is called before the first frame update
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
 
-        x = 5;
-        y = 144;
+        x = 5.5f;
+        y = 144.0f;
 
         accelX = 0;
         accelY = 0;
 
+        velx = 0.0f;
+        vely = 0.0f;
+        jumpVel = Mathf.Sqrt(2.0f * (-gravity) * gravityScale * jumpHeight);
+
         map = world.GetComponent<CreatorBehaviour>();
 
-        movementBlockPointShift.Add(MovementDirection.Right, new List<float>()  {  0.33f, 0.35f,   0.33f, -0.35f  });
-        movementBlockPointShift.Add(MovementDirection.Left, new List<float>()   { -0.33f, 0.35f,  -0.33f, -0.35f  });
-        movementBlockPointShift.Add(MovementDirection.Top, new List<float>()    {  0.33f, -0.5f, -0.33f, -0.5f  });
-        movementBlockPointShift.Add(MovementDirection.Bottom, new List<float>() {  0.33f, 0.5f,  -0.33f,  0.5f  });
-
-        movementPixelBlockPointShift.Add(MovementDirection.Right, new List<int>() { 1, 1, 1, -1 });
-        movementPixelBlockPointShift.Add(MovementDirection.Left, new List<int>() { -1, 1, -1, -1 });
-        movementPixelBlockPointShift.Add(MovementDirection.Top, new List<int>() { 1, -1, -1, -1 });
-        movementPixelBlockPointShift.Add(MovementDirection.Bottom, new List<int>() { 1, 1, -1, 1 });
+        choosers.Add(MovementDirection.Right, chooseRight);
+        choosers.Add(MovementDirection.Left, chooseLeft);
+        choosers.Add(MovementDirection.Top, chooseTop);
+        choosers.Add(MovementDirection.Bottom, chooseBottom);
 
         anim = GetComponent<Animator>();
         health = 2;
@@ -249,171 +251,6 @@ public class PlayerManager : MonoBehaviour
         burningAudioSource.Play(0);
     }
 
-    private void movementPixelBlock(Vector2 curPos, MovementDirection dir)
-    {
-        // curPos is player center
-
-        Vector2Int curPixelPos = getPixelPosition(curPos);
-
-        List<int> pointShifts = movementPixelBlockPointShift[dir];
-
-        int xdec = 0;
-        int ydec = 0;
-
-        getMovementSizeShifts(dir, ref xdec, ref ydec);
-
-        int halfXSize = map.tilePixelSize / 2 + xdec;
-        int halfYSize = map.tilePixelSize / 2 + ydec;
-
-        Vector2Int firstPixel = new Vector2Int(curPixelPos.x + pointShifts[0] * halfXSize, curPixelPos.y + pointShifts[1] * halfYSize);
-        Vector2Int secondPixel = new Vector2Int(curPixelPos.x + pointShifts[2] * halfXSize, curPixelPos.y + pointShifts[3] * halfYSize);
-
-        Vector2Int firstTile = map.getTileFromPixel(firstPixel);
-        Vector2Int secondTile = map.getTileFromPixel(secondPixel);
-
-        Vector2Int firstTileWidth = new Vector2Int(firstTile.x * map.tilePixelSize, (firstTile.x + 1) * map.tilePixelSize);
-        Vector2Int firstTileHeight = new Vector2Int(firstTile.y * map.tilePixelSize, (firstTile.y + 1) * map.tilePixelSize);
-
-        //Debug.Log($"movementPixelBlock: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
-
-        if (map.isPixelValid(firstPixel))
-        {
-            if (map.getTileType(firstTile) != EnvCellType.empty)
-            {
-                //Debug.Log($"movementPixelBlock: tile ({firstTile.x}, {firstTile.y}) - blocker");
-                if (dir == MovementDirection.Left)
-                {
-                    x += 0.001f;
-                    accelX = 0f;
-                }
-                else if (dir == MovementDirection.Right)
-                {
-                    x -= 0.001f;
-                    accelX = 0f;
-                }
-                else
-                {
-                    accelY = 0;
-                }
-            }
-        }
-
-        if (map.isPixelValid(secondPixel))
-        {
-            if (map.getTileType(secondTile) != EnvCellType.empty)
-            {
-                //Debug.Log($"movementPixelBlock: tile ({secondTile.x}, {secondTile.y}) - blocker");
-                if (dir == MovementDirection.Left)
-                {
-                    x += 0.001f;
-                    accelX = 0f;
-                }
-                else if (dir == MovementDirection.Right)
-                {
-                    x -= 0.001f;
-                    accelX = 0f;
-                }
-                else
-                {
-                    accelY = 0;
-                }
-            }
-        }
-    }
-
-    private bool isPixelGrounded(Vector2 curPos)
-    {
-        Vector2Int curPixelPos = getPixelPosition(curPos);
-
-        List<int> pointShifts = movementPixelBlockPointShift[MovementDirection.Bottom];
-
-        int halfSize = map.tilePixelSize / 2;
-
-        int xdec = 0;
-        int ydec = 0;
-
-        getMovementSizeShifts(MovementDirection.Bottom, ref xdec, ref ydec);
-
-        int halfXSize = map.tilePixelSize / 2 + xdec;
-        int halfYSize = map.tilePixelSize / 2;
-
-        Vector2Int firstPixel = new Vector2Int(curPixelPos.x + pointShifts[0] * halfXSize, curPixelPos.y + pointShifts[1] * halfYSize + 1);
-        Vector2Int secondPixel = new Vector2Int(curPixelPos.x + pointShifts[2] * halfXSize, curPixelPos.y + pointShifts[3] * halfYSize + 1);
-
-        Vector2Int firstTile = map.getTileFromPixel(firstPixel);
-        Vector2Int secondTile = map.getTileFromPixel(secondPixel);
-
-        bool grounded = isGrounded(curPos);
-
-        bool answer = false;
-
-        //Debug.Log($"isPixelGrounded: accel ({accelX}, {accelY}), position ({curPos.x}, {curPos.y}), tiles to check ({firstTile.x}, {firstTile.y}), ({secondTile.x}, {secondTile.y})");
-
-        if (map.isPixelValid(firstPixel))
-        {
-            if (map.getTileType(firstTile) != EnvCellType.empty)
-            {
-                //Debug.Log($"isPixelGrounded: tile ({firstTile.x}, {firstTile.y}) - ground");
-                answer = true;
-            }
-        }
-
-        if (map.isPixelValid(secondPixel))
-        {
-            if (map.getTileType(secondTile) != EnvCellType.empty)
-            {
-                //Debug.Log($"isPixelGrounded: tile ({secondTile.x}, {secondTile.y}) - ground");
-                answer = true;
-            }
-        }
-
-
-        return answer;
-    }
-
-    private void movementBlock(Vector2 curPos, MovementDirection dir)
-    {
-        // curPos is player center
-
-        List<float> pointShifts = movementBlockPointShift[dir];
-
-        Vector2 firstPoint = new Vector2(curPos.x + pointShifts[0], curPos.y + pointShifts[1]);
-        Vector2 secondPoint = new Vector2(curPos.x + pointShifts[2], curPos.y + pointShifts[3]);
-
-        Vector2Int iFirstPoint = new Vector2Int(Mathf.RoundToInt(firstPoint.x), Mathf.RoundToInt(firstPoint.y));
-        Vector2Int iSecondPoint = new Vector2Int(Mathf.RoundToInt(secondPoint.x), Mathf.RoundToInt(secondPoint.y));
-
-        if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
-        {
-            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != EnvCellType.empty)
-            {
-                if (dir == MovementDirection.Left || dir == MovementDirection.Right)
-                {
-                    accelX = 0;
-                }
-                else
-                {
-                    accelY = 0;
-                }
-            }
-        }
-
-        if (map.isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
-        {
-            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != EnvCellType.empty)
-            {
-                if (dir == MovementDirection.Left || dir == MovementDirection.Right)
-                {
-                    accelX = 0;
-                }
-                else
-                {
-                    accelY = 0;
-                }
-            }
-        }
-    }
-
     public void playMenu()
     {
         if (bgMusic.clip != clips[0])
@@ -451,31 +288,7 @@ public class PlayerManager : MonoBehaviour
 
     private bool isGrounded(Vector2 curPos)
     {
-        List <float> pointShifts = movementBlockPointShift[MovementDirection.Bottom];
-
-        Vector2 firstPoint = new Vector2(curPos.x + pointShifts[0], curPos.y + pointShifts[1] + 0.25f);
-        Vector2 secondPoint = new Vector2(curPos.x + pointShifts[2], curPos.y + pointShifts[3] + 0.25f);
-
-        Vector2Int iFirstPoint = new Vector2Int((int)firstPoint.x, (int)firstPoint.y);
-        Vector2Int iSecondPoint = new Vector2Int((int)secondPoint.x, (int)secondPoint.y);
-
-        if (map.isValidTileIndices(iFirstPoint.x, iFirstPoint.y))
-        {
-            if (map.getTileType(iFirstPoint.x, iFirstPoint.y) != EnvCellType.empty)
-            {
-                return true;
-            }
-        }
-
-        if (map.isValidTileIndices(iSecondPoint.x, iSecondPoint.y))
-        {
-            if (map.getTileType(iSecondPoint.x, iSecondPoint.y) != EnvCellType.empty)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return blockMovement(new Vector2(curPos.x, curPos.y - 0.05f), MovementDirection.Bottom);
     }
 
     float myClamp(float val, float min, float max)
@@ -531,9 +344,15 @@ public class PlayerManager : MonoBehaviour
         }
         */
 
-        Vector2 relPosition = new Vector2(x, y) - map.getBottomLeft();
+        Vector2 curPos = new Vector2(x, y);
+        Vector2 relPosition = curPos - map.getBottomLeft();
         relPosition.y = map.height - relPosition.y;
-        grounded = isPixelGrounded(relPosition);
+        grounded = isGrounded(curPos);
+
+        if (grounded)
+        {
+            vely = 0.0f;
+        }
 
         if (!isDead)
         {
@@ -542,27 +361,24 @@ public class PlayerManager : MonoBehaviour
                 if (grounded)
                 {
                     playJump();
-                    accelY = jumpForce;
+                    vely = jumpVel;
                     anim.SetInteger("accel_y", 1);
                     anim.SetBool("grounded", false);
                     anim.SetTrigger("jump");
                 }
             }
 
-            if (Input.GetKey(KeyCode.S))
-            {
-                accelY -= accelForce;
-            }
             if (Input.GetKey(KeyCode.D))
             {
-                accelX += accelForce;
+                velx = runVel;
             }
             if (Input.GetKey(KeyCode.A))
             {
-                accelX -= accelForce;
+                velx = -runVel;
             }
         }
-        if (accelX > (accelForce / 10) || (accelX < -accelForce / 10))
+        
+        if (velx > 0.5 || velx < -0.5)
         {
             anim.SetBool("run", true);
         }
@@ -570,29 +386,44 @@ public class PlayerManager : MonoBehaviour
         {
             anim.SetBool("run", false);
         }
-        accelX = Mathf.Lerp(accelX, 0, accelXDecay * Time.deltaTime * 100.0f);
-        accelY = Mathf.Lerp(accelY, -gravity, accelYDecay * Time.deltaTime * 100.0f);
+        
 
-        CheckTiles();
+        float dt = Time.deltaTime;
 
-        x += accelX * Time.deltaTime * 100.0f;
-        y += accelY * Time.deltaTime * 100.0f;
+        // before checking everything should be known, but not yet appleid
 
-        if (accelX > 0)
+        CheckTiles(ref velx, ref vely, dt);
+
+        x += velx * dt;
+        y += vely * dt;
+
+        handleLevelEnlargement();
+
+        vely += gravity * gravityScale * dt;
+
+        if (vely < fallMaxVel)
+        {
+            // limited
+            vely = fallMaxVel;
+        }
+
+        velx *= 0.001f; // fast decay
+
+        if (velx > 0)
         {
             right = true;
         }
-        else if (accelX < 0)
+        else if (velx < 0)
         {
             right = false;
         }
         sr.flipX = !right;
 
-        if (accelY< 0)
+        if (vely < 0)
         {
             anim.SetInteger("accel_y", -1);
         }
-        else if (accelY > 0)
+        else if (vely > 0)
         {
             anim.SetInteger("accel_y", 1);
         }
@@ -656,7 +487,7 @@ public class PlayerManager : MonoBehaviour
         Vector2 relPos = getPosition();
 
         float levelTU = myClamp(relPos.y, TopToUndergroundY, UndergroundToTopY);
-        Debug.Log("relPos.y:" + relPos.y + " TopToUndergroundY:" + TopToUndergroundY + " UndergroundToTopY:" + UndergroundToTopY);
+        //Debug.Log("relPos.y:" + relPos.y + " TopToUndergroundY:" + TopToUndergroundY + " UndergroundToTopY:" + UndergroundToTopY);
         if (levelTU > 1.0f) levelTU = 1.0f;
         if (levelTU < 0.0f) levelTU = 0.0f;
         mixer.SetFloat("BGT", -80.0f * levelTU);
@@ -706,51 +537,145 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    void CheckTiles()
+    Vector2Int[] indShifts = new Vector2Int[8] {
+        new Vector2Int(-1, 0),
+        new Vector2Int(-1, -1),
+        new Vector2Int(0, -1),
+        new Vector2Int(1, -1),
+        new Vector2Int(1, 0),
+        new Vector2Int(1, 1),
+        new Vector2Int(0, 1),
+        new Vector2Int(-1, 1),
+    };
+
+    bool chooseBottom(Vector2Int shift)
     {
-        Vector2 relPosition = new Vector2(x, y + accelY) - map.getZoneBottomLeft();
-        //Debug.Log($"before: {relPosition.x}, {relPosition.y}");
-        relPosition.y = map.height - relPosition.y;
+        return shift.y > 0;
+    }
 
+    bool chooseTop(Vector2Int shift)
+    {
+        return shift.y < 0;
+    }
 
-        var pos = getPositionInTile();
+    bool chooseLeft(Vector2Int shift)
+    {
+        return shift.x < 0;
+    }
 
-        if (accelY < 0.0f)
+    bool chooseRight(Vector2Int shift)
+    {
+        return shift.x > 0;
+    }
+
+    Dictionary <MovementDirection, System.Func<Vector2Int, bool>> choosers = new Dictionary<MovementDirection, System.Func<Vector2Int, bool>>();
+
+    List<Vector2Int> getNeighbours(Vector2Int ind, MovementDirection dir)
+    {
+        System.Func<Vector2Int, bool> chooser = choosers[dir];
+        List<Vector2Int> neighs = new List<Vector2Int>();
+
+        foreach (Vector2Int curShift in indShifts)
         {
-            movementPixelBlock(relPosition, MovementDirection.Bottom);
+            if (chooser(curShift))
+            {
+                Vector2Int curInd = ind + curShift;
+                if (map.isValidTileIndices(curInd.x, curInd.y))
+                {
+                    if (map.getTileType(curInd) != EnvCellType.empty)
+                    {
+                        neighs.Add(curInd);
+                    }
+                }
+            }
         }
-        else
-        {
-            //Debug.Log($"after: {relPosition.x}, {relPosition.y}");
-            movementPixelBlock(relPosition, MovementDirection.Top);
-        }
+
+        return neighs;
+    }
+
+    bool blockMovement(Vector2 pos, MovementDirection dir)
+    {
+        // aabb algo
+        // x, y - center of player sprite
+        Vector2 relpos = pos - map.getZoneBottomLeft();
+        relpos.y = map.height - relpos.y;
+        Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relpos.x - 0.5f), (int)Mathf.Round(relpos.y - 0.5f));
+        //
+        List<Vector2Int> neighs = getNeighbours(tileInds, dir);
         
-        relPosition = new Vector2(x + accelX, y) - map.getZoneBottomLeft();
-        relPosition.y = map.height - relPosition.y;
+        // width and height are equal to 1.0f
 
-        if (accelX > 0.0f)
+        int tileSize = map.tilePixelSize;
+
+        int minx = (int)((relpos.x - 0.35f) * tileSize);
+        int maxx = (int)((relpos.x + 0.35f) * tileSize);
+        int miny = (int)((relpos.y - 0.35f) * tileSize);
+        int maxy = (int)((relpos.y + 0.50f) * tileSize);
+
+        foreach (Vector2Int neigh in neighs)
         {
-            movementPixelBlock(relPosition, MovementDirection.Right);
+            int nboxminx =  neigh.x * tileSize;
+            int nboxmaxx = (neigh.x + 1) * tileSize;
+            int nboxminy =  neigh.y * tileSize;
+            int nboxmaxy = (neigh.y + 1) * tileSize;
+            //
+            if (maxx > nboxminx && minx < nboxmaxx && maxy > nboxminy && miny < nboxmaxy)
+            {
+                return true;
+            }
         }
-        else
-        {
-            movementPixelBlock(relPosition, MovementDirection.Left);
-        }
+        return false;
+    }
+
+    void handleLevelEnlargement()
+    {
+        // TODO: make it endless
+        Vector2 relPosition = new Vector2(x, y) - map.getZoneBottomLeft();
+        relPosition.y = map.height - relPosition.y;
 
         if (map.needLevelAddition(relPosition.y + map.curZoneStart()))
         {
             map.addNewLineOfLevel();
         }
+    }
 
-        /*
+    void CheckTiles(ref float _velx, ref float _vely, float dt)
+    {
         
-        if (relPosition.y > map.curZoneDeep() + map.height / 4)
+        Vector2 nextX = new Vector2(x + _velx * dt, y);
+        Vector2 nextY = new Vector2(x, y + _vely * dt);
+
+        if (_velx < 0.0f)
         {
-            map.setCurrentLevel(map.nextLevelIndex());
+            if (blockMovement(nextX, MovementDirection.Left))
+            {
+                _velx = 0.0f;
+            }
         }
 
-        */
+        if (_velx > 0.0f)
+        {
+            if (blockMovement(nextX, MovementDirection.Right))
+            {
+                _velx = 0.0f;
+            }
+        }
 
+        if (_vely < 0.0f)
+        {
+            if (blockMovement(nextY, MovementDirection.Bottom))
+            {
+                _vely = 0.0f;
+            }
+        }
+
+        if (_vely > 0.0f)
+        {
+            if (blockMovement(nextY, MovementDirection.Top))
+            {
+                _vely = 0.0f;
+            }
+        }
     }
 
     public Vector2 getPosition()
@@ -764,8 +689,8 @@ public class PlayerManager : MonoBehaviour
     {
         var v = new Vector2Int();
 
-        v.x = (int) (x - map.getZoneBottomLeft().x)*48;
-        v.y = (int) (map.height - y) * 48;
+        v.x = (int) ((x - map.getZoneBottomLeft().x) * 48);
+        v.y = (int) ((map.height - y) * 48);
 
         return v;
     }

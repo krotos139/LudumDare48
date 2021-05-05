@@ -597,8 +597,9 @@ public class PlayerManager : MonoBehaviour
 
         if (ptile.y > depth)
         {
-            int mult = (ptile.y / depthAccelDifference) - (depth / depthAccelDifference);
-            if (mult > 0 && mult != water.GetWaterStepsPerUpdate())
+            int mult = ((ptile.y / depthAccelDifference) - (depth / depthAccelDifference)) * 2;
+            mult = mult > 0 ? mult : 1;
+            if (mult != water.GetWaterStepsPerUpdate())
             {
                 Debug.LogWarning($"Increase water speed: {mult}");
                 water.SetWaterStepsPerUpdate(mult);

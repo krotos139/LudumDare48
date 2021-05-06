@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2929390372214782363}
   - component: {fileID: 8427743654864968849}
-  m_Layer: 0
-  m_Name: DigitObj
+  m_Layer: 5
+  m_Name: Renderable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

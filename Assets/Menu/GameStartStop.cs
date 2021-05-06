@@ -34,7 +34,7 @@ public class GameStartStop : MonoBehaviour
 
     public void GameStop()
     {
-        fadein = true;
+        //fadein = true;
         camerab.stopGame();
         water.stopGame();
     }
@@ -67,13 +67,17 @@ public class GameStartStop : MonoBehaviour
     {
         if (canvasCredits != null)
         {
-             canvasCredits.enabled = false;
+            canvasCredits.enabled = false;
             canvasgCredits.alpha = 0.0f;
         }
     }
 
     public void setButtonsEnabled(bool value)
     {
+        if (value)
+        {
+            canvasGroup.alpha = 1.0f;
+        }
         startButton.enabled = value;
         creditsButton.enabled = value;
         quitButton.enabled = value;

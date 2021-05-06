@@ -6,9 +6,10 @@ using UnityEngine.Tilemaps;
 public class CounterBehaviour : MonoBehaviour
 {
     public CameraBehaviour globalCamera; // will stick to camera
-    public GameObject digitPrefab; // for instancing
+    public ObjectPool pool;
+    public GameObject delayer;
 
-    List<GameObject> digitsPool = new List<GameObject>();
+    private DelayHandler dh;
 
     List<GameObject> score = new List<GameObject>();
     List<GameObject> bestScore = new List<GameObject>();
@@ -17,26 +18,8 @@ public class CounterBehaviour : MonoBehaviour
     bool cameraInited = false;
     float cameraVertSize = 0.0f;
 
-    private GameObject GetFromPool()
-    {
-        if (digitsPool.Count != 0)
-        {
-            GameObject go = digitsPool[0];
-            digitsPool.RemoveAt(0);
-            return go;
-        }
-        else
-        {
-            GameObject go = Instantiate(digitPrefab);
-            return go;
-        }
-    }
-
-    private void RevertToPool(GameObject go)
-    {
-        go.SetActive(false);
-        digitsPool.Add(go);
-    }
+    double bestScoreValue = 0.0;
+    double lastSavedScore = 0.0;
 
     private void loadNumbersAssets()
     {
@@ -47,10 +30,17 @@ public class CounterBehaviour : MonoBehaviour
         }
     }
 
-    public void ShowNumber(float value, Vector2 pos)
+    public void ShowNumber(double value, Vector2 pos, bool best = false, int alignment = 0, float depth = 9999.0f)
     {
-        int curValue = (int)Mathf.Round(value);
-        ClearScore();
+        int curValue = (int)System.Math.Round(value);
+        if (best)
+        {
+            ClearBestScore();
+        }
+        else
+        {
+            ClearScore();
+        }
         bool atLeastOne = true;
         List<int> digitsList = new List<int>();
         while(atLeastOne || curValue > 0)
@@ -60,20 +50,93 @@ public class CounterBehaviour : MonoBehaviour
             curValue /= 10;
             digitsList.Add(curDigit);
         }
-        float xpos = pos.x; // 5.5f;
-        float ypos = globalCamera.transform.position.y + pos.y;
-        for(int i = digitsList.Count - 1; i >= 0; i--)
+        float xshift = 0.0f;
+        switch(alignment)
         {
-            GameObject digit = GetFromPool();
+            case 0:
+                // left
+                break;
+            case 1:
+                // right
+                xshift = -0.625f * digitsList.Count;
+                break;
+            case 2:
+                // center
+                xshift = -0.625f * digitsList.Count / 2.0f;
+                break;
+        }
+        xshift += 0.625f / 2.0f;
+        float xpos = pos.x; // 5.5f;
+        float ypos = pos.y;
+        for (int i = digitsList.Count - 1; i >= 0; i--)
+        {
+            GameObject digit = pool.GetFromPool();
             SpriteRenderer rend = digit.GetComponent<SpriteRenderer>();
             if (rend != null)
             {
+                Color col = rend.color;
+                col.a = 1.0f;
+                rend.color = col;
+
                 digit.SetActive(true);
                 rend.sprite = numbers[digitsList[i]].sprite;
-                digit.transform.position = new Vector3(xpos, ypos, digit.transform.position.z);
-                xpos += 0.625f; // because size of digit sprite is 30x48, but cell is 48x48
+                if (depth > 9998.0f)
+                {
+                    digit.transform.position = new Vector3(xpos + xshift, ypos, digit.transform.position.z);
+                }
+                else
+                {
+                    digit.transform.position = new Vector3(xpos + xshift, ypos, depth);
+                }
+                xshift += 0.625f; // because size of digit sprite is 30x48, but cell is 48x48
             }
-            score.Add(digit);
+            if (best)
+            {
+                bestScore.Add(digit);
+            }
+            else
+            {
+                score.Add(digit);
+            }
+        }
+    }
+
+    public void ShowWaterBuried(Vector2 pos, int alignment = 0, float depth = 9999.0f)
+    {
+        double curVolume = globalCamera.player.water.waterVolume;
+        if (curVolume > bestScoreValue)
+        {
+            bestScoreValue = curVolume;
+            PlayerPrefs.SetString("bs", bestScoreValue.ToString());
+        }
+        ShowNumber(curVolume, pos, false, alignment, depth);
+    }
+
+    public void ShowWaterBuriedBest(Vector2 pos, int alignment = 0, float depth = 9999.0f)
+    {
+        ShowNumber(bestScoreValue, pos, true, alignment, depth);
+        SavePrefs();
+    }
+
+    public void SetAlpha(float alpha)
+    {
+        foreach(GameObject go in score)
+        {
+            SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+            Color col = sr.color;
+            col.a = alpha;
+            sr.color = col;
+        }
+    }
+
+    public void SetAlphaBest(float alpha)
+    {
+        foreach (GameObject go in bestScore)
+        {
+            SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+            Color col = sr.color;
+            col.a = alpha;
+            sr.color = col;
         }
     }
 
@@ -86,9 +149,18 @@ public class CounterBehaviour : MonoBehaviour
     {
         foreach(GameObject go in score)
         {
-            RevertToPool(go);
+            pool.RevertToPool(go);
         }
         score.Clear();
+    }
+
+    private void ClearBestScore()
+    {
+        foreach (GameObject go in bestScore)
+        {
+            pool.RevertToPool(go);
+        }
+        bestScore.Clear();
     }
 
     public void ClearAll()
@@ -98,11 +170,11 @@ public class CounterBehaviour : MonoBehaviour
         //
         foreach (GameObject go in score)
         {
-            RevertToPool(go);
+            pool.RevertToPool(go);
         }
         foreach (GameObject go in bestScore)
         {
-            RevertToPool(go);
+            pool.RevertToPool(go);
         }
         score.Clear();
         bestScore.Clear();
@@ -111,10 +183,24 @@ public class CounterBehaviour : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        bestScoreValue = System.Convert.ToDouble(PlayerPrefs.GetString("bs", "0.0"));
+        lastSavedScore = bestScoreValue;
+        dh = delayer.GetComponent<DelayHandler>();
+        dh.SetLimit(60.0f);
+
         loadNumbersAssets();
     }
 
-    // Update is called once per frame
+    void SavePrefs()
+    {
+        double dif = System.Math.Abs(lastSavedScore - bestScoreValue);
+        if (dif > 1e-5)
+        {
+            lastSavedScore = bestScoreValue;
+            PlayerPrefs.Save();
+        }
+    }
+
     void Update()
     {
         if (!cameraInited)
@@ -126,13 +212,22 @@ public class CounterBehaviour : MonoBehaviour
                 cameraInited = true;
             }
         }
-        if (!globalCamera.player.water.isPlaying())
+
+        if (dh.Finished())
         {
-            // something outside of gameplay
+            SavePrefs();
         }
         else
         {
-            ShowNumber(globalCamera.player.water.waterVolume, new Vector2(13.0f, cameraVertSize - 1.5f));
+            if (!dh.Alive())
+            {
+                dh.StartTimer();
+            }
+        }
+
+        if (globalCamera.player.water.isPlaying())
+        {
+            ShowWaterBuried(new Vector2(13.0f, globalCamera.transform.position.y + cameraVertSize - 1.5f));
         }
     }
 }

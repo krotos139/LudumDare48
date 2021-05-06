@@ -27,7 +27,7 @@ public class WaterManager : MonoBehaviour
     float waterTimePassed = 0.0f;
     public int speed = 3;
 
-    public float waterVolume;
+    public double waterVolume;
 
     private bool started = false;
     private int waterStepsPerUpdate = 1;
@@ -208,7 +208,7 @@ public class WaterManager : MonoBehaviour
                             waterGrid.cells[(map.width - 1) * waterQuality / 2 - 25 + i * 2, 1] = WaterGrid.cellType.water;
                         }
 #endif
-                            waterVolume += (1.0f / (float)(waterQuality * waterQuality)) * 3.78f;
+                            waterVolume += (1.0 / (double)(waterQuality * waterQuality)) * 3.78;
                         }
                         waterGrid.nextStep();
                     }

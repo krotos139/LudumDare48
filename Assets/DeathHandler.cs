@@ -6,101 +6,269 @@ using UnityEngine.SceneManagement;
 
 public class DeathHandler : MonoBehaviour
 {
+    public CameraBehaviour globalCamera;
+    public CounterBehaviour globalCounter;
 
-    public Canvas canvas;
-    public PlayerManager playerManager;
     public GameStartStop gameStartStop;
 
-    public float fadeSpeed = 0.1f;
+    public ObjectPool delayPool;
 
-    public Image backImage;
-    bool isBackFaded = false;
-    float backAlpha = 0f;
+    public float idleTime = 1.25f;
+    public float fadeTime = 0.5f;
+    public float youDiedAppear = 0.5f;
+    public float scoreAppear = 0.5f;
+    public float keyUnlock = 0.5f;
+    public float menuAppear = 0.5f;
 
-    public Image youdiedImage;
-    bool isYoudiedFaded = false;
-    float youdiedAlpha = 0f;
+    public SpriteRenderer bgRend;
+    public SpriteRenderer youDiedRend;
+    public SpriteRenderer wasteBuriedRend;
+    public SpriteRenderer wasteBuriedBestRend;
 
-    bool fadedOut = false;
-    float fadeOutAlpha = 1f;
+    private GameObject idleDelayObj;
+    private GameObject fadeDelayObj;
+    private GameObject youDiedDelayObj;
+    private GameObject scoreAppearDelayObj;
+    private GameObject keyUnlockDelayObj;
+    private GameObject menuAppearDelayObj;
 
-    bool clicked = false;
+    private DelayHandler idleDelayObjDH;
+    private DelayHandler fadeDelayObjDH;
+    private DelayHandler youDiedDelayObjDH;
+    private DelayHandler scoreAppearDelayObjDH;
+    private DelayHandler keyUnlockDelayObjDH;
+    private DelayHandler menuAppearDelayObjDH;
 
+    bool init = false;
 
-    float delay = 0.0f;
+    void DisableRenders()
+    {
+        // make all images transparent
 
+        Color col = bgRend.color;
+        col.a = 0.0f;
+        bgRend.color = col;
+
+        col = youDiedRend.color;
+        col.a = 0.0f;
+        youDiedRend.color = col;
+
+        col = wasteBuriedRend.color;
+        col.a = 0.0f;
+        wasteBuriedRend.color = col;
+
+        col = wasteBuriedBestRend.color;
+        col.a = 0.0f;
+        wasteBuriedBestRend.color = col;
+
+        globalCounter.SetAlpha(0.0f);
+        globalCounter.SetAlphaBest(0.0f);
+    }
+
+    void Init()
+    {
+        DisableRenders();
+        // set delays options
+        // actions will be set later
+
+        idleDelayObj = delayPool.GetFromPool();
+        idleDelayObjDH = idleDelayObj.GetComponent<DelayHandler>();
+        idleDelayObjDH.SetLimit(idleTime);
+
+        fadeDelayObj = delayPool.GetFromPool();
+        fadeDelayObjDH = fadeDelayObj.GetComponent<DelayHandler>();
+        fadeDelayObjDH.SetLimit(fadeTime);
+
+        youDiedDelayObj = delayPool.GetFromPool();
+        youDiedDelayObjDH = youDiedDelayObj.GetComponent<DelayHandler>();
+        youDiedDelayObjDH.SetLimit(youDiedAppear);
+
+        scoreAppearDelayObj = delayPool.GetFromPool();
+        scoreAppearDelayObjDH = scoreAppearDelayObj.GetComponent<DelayHandler>();
+        scoreAppearDelayObjDH.SetLimit(scoreAppear);
+
+        keyUnlockDelayObj = delayPool.GetFromPool();
+        keyUnlockDelayObjDH = keyUnlockDelayObj.GetComponent<DelayHandler>();
+        keyUnlockDelayObjDH.SetLimit(keyUnlock);
+
+        menuAppearDelayObj = delayPool.GetFromPool();
+        menuAppearDelayObjDH = menuAppearDelayObj.GetComponent<DelayHandler>();
+        menuAppearDelayObjDH.SetLimit(menuAppear);
+    }
 
     void Start()
     {
-        canvas.enabled = false;
-        youdiedImage.color = new Color(117f, 171f, 134f, 0);
+        if (!init)
+        {
+            init = true;
+            Init();
+        }
     }
 
-    // Update is called once per frame
+    private void ShowBackgroundWithAlpha(float alpha)
+    {
+        // complete varies from 0.0f to 1.0f
+        Vector3 cameraPos = globalCamera.transform.position;
+        Vector3 rendPos = bgRend.transform.position;
+        bgRend.transform.position = new Vector3(cameraPos.x, cameraPos.y, rendPos.z);
+        Color col = bgRend.color;
+        col.a = alpha;
+        bgRend.color = col;
+    }
+
+    private void FadeInUpdate(float complete)
+    {
+        ShowBackgroundWithAlpha(complete);
+    }
+
+    private void ShowYouDiedWithAlpha(float alpha)
+    {
+        Vector3 cameraPos = globalCamera.transform.position;
+        Vector3 rendPos = youDiedRend.transform.position;
+        youDiedRend.transform.position = new Vector3(cameraPos.x, cameraPos.y + 2.0f, rendPos.z);
+
+        Color col = youDiedRend.color;
+        col.a = alpha;
+        youDiedRend.color = col;
+    }
+
+    private void YouDiedShowUpdate(float complete)
+    {
+        float curAlpha = complete * 2.0f;
+        ShowYouDiedWithAlpha(curAlpha);
+    }
+
+    private void ShowScoresWithAlpha(float alpha)
+    {
+        Vector3 cameraPos = globalCamera.transform.position;
+        Vector3 rendPos = wasteBuriedRend.transform.position;
+
+        wasteBuriedRend.transform.position = new Vector3(cameraPos.x, cameraPos.y, rendPos.z);
+        Color col = wasteBuriedRend.color;
+        col.a = alpha;
+        wasteBuriedRend.color = col;
+
+        globalCounter.ShowWaterBuried(new Vector2(cameraPos.x, cameraPos.y - 1.0f), 2, rendPos.z - 0.05f);
+        globalCounter.SetAlpha(alpha);
+
+        wasteBuriedBestRend.transform.position = new Vector3(cameraPos.x, cameraPos.y - 2.0f, rendPos.z);
+        col = wasteBuriedBestRend.color;
+        col.a = alpha;
+        wasteBuriedBestRend.color = col;
+
+        globalCounter.ShowWaterBuriedBest(new Vector2(cameraPos.x, cameraPos.y - 3.0f), 2, rendPos.z - 0.05f);
+        globalCounter.SetAlphaBest(alpha);
+    }
+
+    private void ScoreShowUpdate(float complete)
+    {
+        ShowScoresWithAlpha(complete);
+    }
+
+    void BackToMenuUpdate(float complete)
+    {
+        float inverseAlpha = 1.0f - complete;
+
+        ShowBackgroundWithAlpha(inverseAlpha);
+        ShowYouDiedWithAlpha(inverseAlpha);
+        ShowScoresWithAlpha(inverseAlpha);
+    }
+
+    void BackToMenuEnd()
+    {
+        // finally
+
+        SceneManager.LoadScene("SampleScene");
+        DisableRenders();
+        gameStartStop.setButtonsEnabled(true);
+    }
+
     void Update()
     {
-        if (!playerManager.isDead) return;
-
-        if (delay < 500.0f)
+        if (!init)
         {
-            delay++;
-            return;
-        }
-        // enable canvas
-        if (!canvas.enabled) canvas.enabled = true;
-
-        // background fade-in
-        if (!isBackFaded)
-        {
-            backAlpha += Time.deltaTime * fadeSpeed;
-            backImage.color = new Color(0f, 0f, 0f, backAlpha);
-
-            if (backAlpha >= 1f) isBackFaded = true;
-
-            return;
+            init = true;
+            Init();
         }
 
-        if (!fadedOut) gameStartStop.GameStop();
+        if (!globalCamera.player.isDead) return;
 
-
-        // "You died" fade-in
-        if (isBackFaded && !isYoudiedFaded)
+        if (!idleDelayObjDH.Finished())
         {
-            youdiedAlpha += Time.deltaTime * fadeSpeed;
-            youdiedImage.color = new Color(117f, 171f, 134f, youdiedAlpha);
-
-            if (youdiedAlpha >= 1f) isYoudiedFaded = true;
+            if (!idleDelayObjDH.Alive())
+            {
+                idleDelayObjDH.StartTimer(null, null, null); // just wait for a while
+            }
         }
-
-        //// "Waste biried" fade-in
-        //if (isYoudiedFaded && !isWasteFaded)
-        //{
-        //    wasteAlpha += Time.deltaTime * fadeSpeed;
-        //    wasteImage.color = new Color(117f, 171f, 134f, wasteAlpha);
-
-        //    if (wasteAlpha >= 1f)
-        //    {
-        //        isWasteFaded = true;
-        //    }
-        //}
-
-        if (isBackFaded && isYoudiedFaded && Input.GetMouseButtonDown(0)) clicked = true;
-
-        if (clicked)
+        else
         {
-            fadeOutAlpha -= Time.deltaTime * fadeSpeed;
+            gameStartStop.GameStop(); // freeze water
 
-            backImage.color = new Color(0f, 0f, 0f, fadeOutAlpha);
-            youdiedImage.color = new Color(117f, 171f, 134f, fadeOutAlpha);
+            if (!fadeDelayObjDH.Finished())
+            {
+                if (!fadeDelayObjDH.Alive())
+                {
+                    fadeDelayObjDH.StartTimer(null, FadeInUpdate, null); // start fading
+                }
+            }
+            else
+            {
+                // fading is finished
 
-            if (fadeOutAlpha <= 0f) fadedOut = true;
-        }
+                if (!youDiedDelayObjDH.Finished())
+                {
+                    if (!youDiedDelayObjDH.Alive())
+                    {
+                        youDiedDelayObjDH.StartTimer(null, YouDiedShowUpdate, null); // start "You died" message unfading
+                    }
+                }
+                else
+                {
+                    // "You died" was shown
 
-        if (fadedOut && clicked)
-        {
-            playerManager.playMenu();
-            SceneManager.LoadScene("SampleScene");
+                    // start "Waste buried" and score unfading
+
+                    if (!scoreAppearDelayObjDH.Finished())
+                    {
+                        if (!scoreAppearDelayObjDH.Alive())
+                        {
+                            scoreAppearDelayObjDH.StartTimer(null, ScoreShowUpdate, null);
+                        }
+                    }
+                    else
+                    {
+                        // time for score showing, keys are locked for some time, nothing happens
+
+                        if (!keyUnlockDelayObjDH.Finished())
+                        {
+                            if (!keyUnlockDelayObjDH.Alive())
+                            {
+                                keyUnlockDelayObjDH.StartTimer(null, null, null);
+                            }
+                        }
+
+                        else
+                        {
+                            bool clicked = Input.GetMouseButtonDown(0);
+
+                            if (clicked)
+                            {
+                                globalCamera.player.playMenu();
+
+                                // go back to menu
+
+                                if (!menuAppearDelayObjDH.Finished())
+                                {
+                                    if (!menuAppearDelayObjDH.Alive())
+                                    {
+                                        menuAppearDelayObjDH.StartTimer(null, BackToMenuUpdate, BackToMenuEnd);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
-
 }

@@ -126,6 +126,13 @@ public class CounterBehaviour : MonoBehaviour
                 cameraInited = true;
             }
         }
-        ShowNumber(globalCamera.player.water.waterVolume, new Vector2(13.0f, cameraVertSize - 1.5f));
+        if (!globalCamera.player.water.isPlaying())
+        {
+            // something outside of gameplay
+        }
+        else
+        {
+            ShowNumber(globalCamera.player.water.waterVolume, new Vector2(13.0f, cameraVertSize - 1.5f));
+        }
     }
 }

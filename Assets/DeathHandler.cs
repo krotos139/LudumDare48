@@ -134,6 +134,7 @@ public class DeathHandler : MonoBehaviour
 
     private void YouDiedShowUpdate(float complete)
     {
+        ShowBackgroundWithAlpha(1.0f);
         float curAlpha = complete * 2.0f;
         ShowYouDiedWithAlpha(curAlpha);
     }
@@ -162,6 +163,8 @@ public class DeathHandler : MonoBehaviour
 
     private void ScoreShowUpdate(float complete)
     {
+        ShowBackgroundWithAlpha(1.0f);
+        ShowYouDiedWithAlpha(1.0f);
         ShowScoresWithAlpha(complete);
     }
 
@@ -170,8 +173,10 @@ public class DeathHandler : MonoBehaviour
         float inverseAlpha = 1.0f - complete;
 
         ShowBackgroundWithAlpha(inverseAlpha);
-        ShowYouDiedWithAlpha(inverseAlpha);
-        ShowScoresWithAlpha(inverseAlpha);
+        ShowYouDiedWithAlpha(inverseAlpha * 0.5f);
+        ShowScoresWithAlpha(inverseAlpha * 0.5f);
+
+        gameStartStop.MenuAppearanceWithAlpha(complete);
     }
 
     void BackToMenuEnd()
@@ -180,7 +185,6 @@ public class DeathHandler : MonoBehaviour
 
         SceneManager.LoadScene("SampleScene");
         DisableRenders();
-        gameStartStop.setButtonsEnabled(true);
     }
 
     void Update()
@@ -192,6 +196,8 @@ public class DeathHandler : MonoBehaviour
         }
 
         if (!globalCamera.player.isDead) return;
+
+        globalCamera.startWaiting();
 
         if (!idleDelayObjDH.Finished())
         {
@@ -214,6 +220,9 @@ public class DeathHandler : MonoBehaviour
             else
             {
                 // fading is finished
+
+                globalCamera.stopWaiting();
+                globalCamera.ReturnToStart();
 
                 if (!youDiedDelayObjDH.Finished())
                 {

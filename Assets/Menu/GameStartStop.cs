@@ -83,6 +83,15 @@ public class GameStartStop : MonoBehaviour
         quitButton.enabled = value;
     }
 
+    public void MenuAppearanceWithAlpha(float alpha)
+    {
+        canvasGroup.alpha = alpha;
+        if (canvasGroup.alpha >= 0.99f)
+        {
+            setButtonsEnabled(true);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {

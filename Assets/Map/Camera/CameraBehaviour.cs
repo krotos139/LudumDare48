@@ -9,6 +9,7 @@ public class CameraBehaviour : MonoBehaviour
 
     private bool fixedSize = false;
     private bool started = false;
+    private bool waiting = false;
 
 
     public void startGame()
@@ -21,8 +22,23 @@ public class CameraBehaviour : MonoBehaviour
         started = false;
     }
 
+    public void startWaiting()
+    {
+        waiting = true;
+    }
+
+    public void stopWaiting()
+    {
+        waiting = false;
+    }
+
     // Start is called before the first frame update
     void Start()
+    {
+        transform.position = new Vector3(0.0f, 155.5f, -10.0f);
+    }
+
+    public void ReturnToStart()
     {
         transform.position = new Vector3(0.0f, 155.5f, -10.0f);
     }
@@ -47,7 +63,7 @@ public class CameraBehaviour : MonoBehaviour
         }
 
         Vector3 pos;
-        if (started)
+        if (started || waiting)
         {
             pos = new Vector3(
                 0.0f,

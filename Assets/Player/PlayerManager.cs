@@ -339,9 +339,34 @@ public class PlayerManager : MonoBehaviour
         bgMusic.Play(0);
     }
 
+    float lastGroundStand = 0.0f;
+    float jumpActiveTime = 0.1f;
+    bool  jumpPressed = false;
+
     private bool isGrounded(Vector2 curPos)
     {
         return blockMovement(new Vector2(curPos.x, curPos.y - 0.05f), MovementDirection.Bottom);
+    }
+
+    private bool canJump(Vector2 curPos)
+    {
+        bool onGround = blockMovement(new Vector2(curPos.x, curPos.y - 0.1f), MovementDirection.Bottom);
+        bool wasOnGround = false;
+        if (onGround)
+        {
+            jumpPressed = false;
+            lastGroundStand = Time.time;
+        }
+        else
+        {
+            float timeInAir = Time.time - lastGroundStand;
+            if (timeInAir < jumpActiveTime)
+            {
+                // cartoon effect - you can jump if you are not on ground, but was on it
+                wasOnGround = true;
+            }
+        }
+        return onGround || (wasOnGround && !jumpPressed);
     }
 
     float myClamp(float val, float min, float max)
@@ -401,19 +426,29 @@ public class PlayerManager : MonoBehaviour
         Vector2 curPos = new Vector2(x, y);
         Vector2 relPosition = curPos - map.getBottomLeft();
         relPosition.y = map.height - relPosition.y;
-        grounded = isGrounded(curPos);
-
-        if (grounded)
-        {
-            vely = 0.0f;
-        }
+        grounded = isGrounded(curPos);   // for animation
+        bool jumpAble = canJump(curPos); // for jump control
 
         if (!isDead)
         {
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+                if (vely > 0.0f)
+                {
+                    // player in jump state
+                    float timeInAir = Time.time - lastGroundStand;
+                    if (timeInAir < 0.2f)
+                    {
+                        // it helps us to get lower and higher jumps
+                        vely *= 0.5f;
+                    }
+                }
+            }
             if (Input.GetKey(KeyCode.Space))
             {
-                if (grounded)
+                if (jumpAble)
                 {
+                    jumpPressed = true;
                     playJump();
                     vely = jumpVel;
                     anim.SetInteger("accel_y", 1);

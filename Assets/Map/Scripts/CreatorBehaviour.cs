@@ -152,6 +152,32 @@ public class CreatorBehaviour : MonoBehaviour
         }
     }
 
+    private void recalcNeighbours(int ix, int iy)
+    {
+        InteractiveCell cell = level[iy][ix];
+        if (cell.getType() != EnvCellType.empty)
+        {
+            cell.neighbours = GetTileOrthoNeighbours(ix, iy, cell.getType());
+            level[iy][ix] = cell;
+        }
+    }
+
+    private void changeSurroundingCells(int ix, int iy)
+    {
+        List<int> neighs = GetNeighbours(ix, iy);
+        for (int i = 0; i < neighs.Count; i += 2)
+        {
+            int nx = neighs[i];
+            int ny = neighs[i + 1];
+            InteractiveCell cell = getCell(nx, ny);
+            if (cell.getType() != EnvCellType.empty)
+            {
+                recalcNeighbours(nx, ny);
+                showLevelTile(nx, ny);
+            }
+        }
+    }
+
     private void fillLevelByNoise(int yStart, int yEnd, EnvCellType[] materials, float[] materialsWeights, float perlinCoefX, float perlinCoefY, float xorg, float yorg)
     {
         // use xorg and yorg for shifting perlin surface
@@ -431,9 +457,9 @@ public class CreatorBehaviour : MonoBehaviour
         }
         int maxDurability = InteractiveCell.typeDurability[cell.getType()];
         int decalIndex = maxDurability - cell.getDurability() - 1;
+
         Tile tile = decals[cell.getType()][decalIndex];
         decalTilemap.SetTile(new Vector3Int(rx, ry, 0), tile);
-        
     }
 
     private void showGarbageEmpty(int x, int y)
@@ -753,6 +779,7 @@ public class CreatorBehaviour : MonoBehaviour
                             showLevelTile(tileInds.x, tileInds.y);
                             showDecalEmpty(tileInds.x, tileInds.y);
                             showGarbageEmpty(tileInds.x, tileInds.y);
+                            changeSurroundingCells(tileInds.x, tileInds.y);
                         }
                         else
                         {

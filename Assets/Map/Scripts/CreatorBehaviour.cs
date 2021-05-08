@@ -61,9 +61,10 @@ public class CreatorBehaviour : MonoBehaviour
     public Tilemap gbTilemap;
     public PlayerManager player;
 
+    public GameObject selectedCell;
+
     public int width = 24;
     public int height = 10;
-    public float interactLength = 1.8f;
 
     public List<InteractiveCell[]> level = null;
 
@@ -692,12 +693,14 @@ public class CreatorBehaviour : MonoBehaviour
         {
             bool canInteract = false;
             Vector2 playerPosition = player.getPosition();
+
             Vector3 cursorPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 zoneBottom = getZoneBottomLeft();
             Vector3 relPosition = cursorPosition - new Vector3(zoneBottom.x, zoneBottom.y, 0.0f);
             // relPosition.y += height * (levelIndex);
             relPosition.y = height - relPosition.y;
             Vector2Int tileInds = new Vector2Int((int)Mathf.Round(relPosition.x - 0.5f), (int)Mathf.Round(relPosition.y - 0.5f));
+            Vector2 tileCoord = new Vector2(tileInds.x + zoneBottom.x + 0.5f, zoneBottom.y + height - tileInds.y - 0.5f);
 
             if (isValidTileIndices(tileInds.x, tileInds.y))
             {
@@ -707,17 +710,39 @@ public class CreatorBehaviour : MonoBehaviour
 
                 if (cellType != EnvCellType.empty)
                 {
-                    if (Mathf.Abs(playerPosition.x - relPosition.x) <= interactLength && Mathf.Abs(playerPosition.y - relPosition.y) <= interactLength)
-                    {
-                        // only detroying 
+                    Vector2Int playerTile = player.getPlayerCenterTile();
+                    List<int> neighs = GetNeighbours(playerTile.x, playerTile.y);
 
-                        canInteract = true;
+                    for (int i = 0; i < neighs.Count; i += 2)
+                    {
+                        if (neighs[i] == tileInds.x && neighs[i+1] == tileInds.y)
+                        {
+                            canInteract = true;
+                            break;
+                        }
                     }
                 }
 
-                if (Input.GetMouseButtonDown(0) && canInteract)
+                if (canInteract)
                 {
-                    Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
+                    selectedCell.SetActive(true);
+                    selectedCell.transform.position = new Vector3(tileCoord.x, tileCoord.y, -1.2f);
+                }
+                else
+                {
+                    selectedCell.SetActive(false);
+                }
+
+                bool leftMouseButtonPressed = Input.GetMouseButtonDown(0);
+
+                if (leftMouseButtonPressed)
+                {
+                    //Debug.LogWarning($"chosen tile : ({tileInds.x}, {tileInds.y}), relpos({relPosition.x}, {relPosition.y}), pos({cursorPosition.x}, {cursorPosition.y})");
+                }
+
+                if (leftMouseButtonPressed && canInteract)
+                {
+                    // Debug.LogWarning($"removing tile : ({tileInds.x}, {tileInds.y})");
                     player.playSFX(curCell.getType());
                     if (cellType != EnvCellType.metal)
                     {
